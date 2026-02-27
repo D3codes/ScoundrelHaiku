@@ -126,8 +126,7 @@ GameBoardView::Refresh()
 	if (fGame == NULL)
 		return;
 
-	// Simply refresh child views and invalidate
-	// Window is typically already locked during MessageReceived
+	// Refresh child views
 	if (fTopBarView != NULL)
 		fTopBarView->Refresh();
 	if (fRoomView != NULL)
@@ -136,7 +135,9 @@ GameBoardView::Refresh()
 		fStatsBarView->Refresh();
 	Invalidate();
 
-	// Force immediate update
-	if (Window() != NULL)
+	// Force synchronous redraw
+	if (Window() != NULL) {
 		Window()->UpdateIfNeeded();
+		Sync();
+	}
 }

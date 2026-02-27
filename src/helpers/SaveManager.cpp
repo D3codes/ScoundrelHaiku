@@ -117,8 +117,15 @@ SaveManager::LoadGame(Game* game)
 	if (status != B_OK)
 		return status;
 
+	// Save the observer before loading (it's not serialized)
+	GameObserver* observer = game->GetObserver();
+
 	// Create new game from archive
 	*game = Game(&archive);
+
+	// Restore the observer
+	game->SetObserver(observer);
+
 	return B_OK;
 }
 

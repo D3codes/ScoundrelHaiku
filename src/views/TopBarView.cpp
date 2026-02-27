@@ -298,6 +298,4 @@ TopBarView::Refresh()
 		fleeBtn->SetEnabled(fGame->GetRoom()->CanFlee());
 
 	Invalidate();
-	if (Window() != NULL)
-		Window()->UpdateIfNeeded();
 }

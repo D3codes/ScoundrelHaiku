@@ -34,8 +34,6 @@ void
 StatsBarView::Refresh()
 {
 	Invalidate();
-	if (Window() != NULL)
-		Window()->UpdateIfNeeded();
 }
 
 

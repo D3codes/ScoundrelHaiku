@@ -223,6 +223,11 @@ GameWindow::HandleCardAction(BMessage* message)
 			fGame.AttackMonster(index, false);
 			break;
 	}
+
+	// Explicitly refresh the game board after any card action
+	if (fGameBoardView != NULL) {
+		fGameBoardView->Refresh();
+	}
 }
 
 

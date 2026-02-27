@@ -27,6 +27,7 @@ public:
 						~Game();
 
 	void				SetObserver(GameObserver* observer);
+	GameObserver*		GetObserver() const { return fObserver; }
 
 	// Game state
 	GameState			State() const { return fState; }
