@@ -135,4 +135,8 @@ GameBoardView::Refresh()
 	if (fStatsBarView != NULL)
 		fStatsBarView->Refresh();
 	Invalidate();
+
+	// Force immediate update
+	if (Window() != NULL)
+		Window()->UpdateIfNeeded();
 }

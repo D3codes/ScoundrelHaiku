@@ -4,6 +4,7 @@
 #include "utils/Constants.h"
 
 #include <Bitmap.h>
+#include <Window.h>
 
 StatsBarView::StatsBarView(BRect frame)
 	:
@@ -33,6 +34,8 @@ void
 StatsBarView::Refresh()
 {
 	Invalidate();
+	if (Window() != NULL)
+		Window()->UpdateIfNeeded();
 }
 
 

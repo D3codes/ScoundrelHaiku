@@ -6,6 +6,7 @@
 
 #include <Bitmap.h>
 #include <String.h>
+#include <Window.h>
 
 RoomView::RoomView(BRect frame)
 	:
@@ -130,4 +131,6 @@ RoomView::Refresh()
 	}
 
 	Invalidate();
+	if (Window() != NULL)
+		Window()->UpdateIfNeeded();
 }
