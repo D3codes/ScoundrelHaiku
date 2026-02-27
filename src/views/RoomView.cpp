@@ -68,7 +68,7 @@ RoomView::Draw(BRect updateRect)
 	bgName.SetToFormat("dungeon%d", fBackgroundIndex);
 	BBitmap* background = ResourceLoader::Instance()->GetBackground(bgName.String());
 
-	if (background != NULL) {
+	if (background != NULL && Parent() != NULL) {
 		// Calculate source rect based on our position in parent
 		BRect parentBounds = Parent()->Bounds();
 		BRect srcRect = background->Bounds();
