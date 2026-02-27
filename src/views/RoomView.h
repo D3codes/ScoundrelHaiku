@@ -15,11 +15,13 @@ public:
 	virtual void		AttachedToWindow();
 
 	void				SetRoom(Room* room);
+	void				SetBackgroundIndex(int index);
 	void				Refresh();
 
 private:
 	CardView*			fCardViews[4];
 	Room*				fRoom;
+	int					fBackgroundIndex;
 };
 
 #endif // ROOM_VIEW_H

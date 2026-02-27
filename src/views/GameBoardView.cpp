@@ -8,6 +8,7 @@
 #include "utils/MessageCodes.h"
 
 #include <Bitmap.h>
+#include <OS.h>
 #include <stdlib.h>
 #include <Window.h>
 
@@ -79,6 +80,8 @@ void
 GameBoardView::RandomizeBackground()
 {
 	fBackgroundIndex = (rand() % 5) + 1; // dungeon1 through dungeon5
+	if (fRoomView != NULL)
+		fRoomView->SetBackgroundIndex(fBackgroundIndex);
 	Invalidate();
 }
 
@@ -119,12 +122,24 @@ GameBoardView::Refresh()
 	if (fGame == NULL)
 		return;
 
-	// Lock window for thread safety when called from observer
-	if (Window() != NULL && Window()->Lock()) {
-		fTopBarView->Refresh();
-		fRoomView->Refresh();
-		fStatsBarView->Refresh();
-		Invalidate();
-		Window()->Unlock();
+	if (Window() == NULL)
+		return;
+
+	// Check if we need to lock (window might already be locked during MessageReceived)
+	bool needsUnlock = false;
+	thread_id currentThread = find_thread(NULL);
+	if (Window()->LockingThread() != currentThread) {
+		if (Window()->LockWithTimeout(50000) != B_OK) {
+			return; // Can't get lock, skip this refresh
+		}
+		needsUnlock = true;
 	}
+
+	fTopBarView->Refresh();
+	fRoomView->Refresh();
+	fStatsBarView->Refresh();
+	Invalidate();
+
+	if (needsUnlock)
+		Window()->Unlock();
 }

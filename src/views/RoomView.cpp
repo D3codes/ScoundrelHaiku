@@ -1,16 +1,21 @@
 #include "RoomView.h"
 #include "CardView.h"
 #include "models/Room.h"
+#include "helpers/ResourceLoader.h"
 #include "utils/Constants.h"
+
+#include <Bitmap.h>
+#include <String.h>
 
 RoomView::RoomView(BRect frame)
 	:
 	BView(frame, "roomView", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP,
 		B_WILL_DRAW | B_FRAME_EVENTS | B_FULL_UPDATE_ON_RESIZE),
-	fRoom(NULL)
+	fRoom(NULL),
+	fBackgroundIndex(1)
 {
-	// Transparent to show GameBoardView's dungeon background
-	SetViewColor(B_TRANSPARENT_COLOR);
+	// Use solid color as fallback
+	SetViewColor(kBackgroundColor);
 
 	// Calculate card positions for 2x2 grid
 	float cardWidth = kCardWidth;
@@ -52,7 +57,48 @@ RoomView::AttachedToWindow()
 void
 RoomView::Draw(BRect updateRect)
 {
-	// Background drawn by view color
+	BRect bounds = Bounds();
+
+	// Fill with solid background first
+	SetHighColor(kBackgroundColor);
+	FillRect(bounds);
+
+	// Draw dungeon background
+	BString bgName;
+	bgName.SetToFormat("dungeon%d", fBackgroundIndex);
+	BBitmap* background = ResourceLoader::Instance()->GetBackground(bgName.String());
+
+	if (background != NULL) {
+		// Calculate source rect based on our position in parent
+		BRect parentBounds = Parent()->Bounds();
+		BRect srcRect = background->Bounds();
+
+		// Scale to parent size
+		float scaleX = srcRect.Width() / parentBounds.Width();
+		float scaleY = srcRect.Height() / parentBounds.Height();
+
+		// Our position in parent
+		BPoint pos = Frame().LeftTop();
+
+		// Calculate the portion of the background that corresponds to our area
+		BRect ourSrcRect(
+			pos.x * scaleX,
+			pos.y * scaleY,
+			(pos.x + bounds.Width()) * scaleX,
+			(pos.y + bounds.Height()) * scaleY
+		);
+
+		SetDrawingMode(B_OP_COPY);
+		DrawBitmap(background, ourSrcRect, bounds);
+	}
+}
+
+
+void
+RoomView::SetBackgroundIndex(int index)
+{
+	fBackgroundIndex = index;
+	Invalidate();
 }
 
 
