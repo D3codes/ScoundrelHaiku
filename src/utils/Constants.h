@@ -1,6 +1,9 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <InterfaceDefs.h>
+#include <SupportDefs.h>
+
 // Application signature
 #define APP_SIGNATURE "application/x-vnd.Scoundrel"
 
