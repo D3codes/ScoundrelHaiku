@@ -1,0 +1,28 @@
+#ifndef CARD_VIEW_H
+#define CARD_VIEW_H
+
+#include <View.h>
+
+class Card;
+
+class CardView : public BView {
+public:
+						CardView(BRect frame, int32 index);
+	virtual				~CardView();
+
+	virtual void		Draw(BRect updateRect);
+	virtual void		MouseDown(BPoint where);
+
+	void				SetCard(Card* card);
+	void				ClearCard();
+	int32				Index() const { return fIndex; }
+
+private:
+	void				DrawEmptySlot();
+	void				DrawCard();
+
+	int32				fIndex;
+	Card*				fCard;
+};
+
+#endif // CARD_VIEW_H
