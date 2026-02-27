@@ -65,11 +65,17 @@ Deck::Shuffle()
 		seeded = true;
 	}
 
-	// Fisher-Yates shuffle
+	// Fisher-Yates shuffle using manual swap
 	int count = fCards.CountItems();
 	for (int i = count - 1; i > 0; i--) {
 		int j = rand() % (i + 1);
-		fCards.SwapItems(i, j);
+		if (i != j) {
+			// Manual swap: remove both items and re-add in swapped positions
+			Card* cardI = fCards.RemoveItemAt(i);
+			Card* cardJ = fCards.RemoveItemAt(j);
+			fCards.AddItem(cardI, j);
+			fCards.AddItem(cardJ, i);
+		}
 	}
 }
 
