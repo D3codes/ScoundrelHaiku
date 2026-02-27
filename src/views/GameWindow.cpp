@@ -63,11 +63,15 @@ GameWindow::ShowMainMenu()
 	if (fShowingMenu)
 		return;
 
-	if (fGameBoardView->Parent() != NULL)
-		RemoveChild(fGameBoardView);
+	if (fGameBoardView != NULL && fGameBoardView->Parent() != NULL) {
+		fGameBoardView->RemoveSelf();
+	}
 
-	AddChild(fMainMenuView);
+	if (fMainMenuView->Parent() == NULL) {
+		AddChild(fMainMenuView);
+	}
 	fMainMenuView->SetHasSavedGame(SaveManager::Instance()->HasSavedGame());
+	fMainMenuView->Invalidate();
 	fShowingMenu = true;
 }
 
@@ -78,11 +82,15 @@ GameWindow::ShowGameBoard()
 	if (!fShowingMenu)
 		return;
 
-	if (fMainMenuView->Parent() != NULL)
-		RemoveChild(fMainMenuView);
+	if (fMainMenuView != NULL && fMainMenuView->Parent() != NULL) {
+		fMainMenuView->RemoveSelf();
+	}
 
-	AddChild(fGameBoardView);
+	if (fGameBoardView->Parent() == NULL) {
+		AddChild(fGameBoardView);
+	}
 	fGameBoardView->SetGame(&fGame);
+	fGameBoardView->Invalidate();
 	fShowingMenu = false;
 }
 
