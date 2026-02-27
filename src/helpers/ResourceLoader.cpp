@@ -2,11 +2,14 @@
 
 #include <Application.h>
 #include <Bitmap.h>
+#include <Directory.h>
 #include <File.h>
 #include <FindDirectory.h>
 #include <Path.h>
 #include <Roster.h>
 #include <TranslationUtils.h>
+
+#include <stdio.h>
 
 ResourceLoader* ResourceLoader::sInstance = NULL;
 
@@ -34,10 +37,28 @@ ResourceLoader::ResourceLoader()
 {
 	// Get application directory
 	app_info info;
-	if (be_app->GetAppInfo(&info) == B_OK) {
+	bool found = false;
+
+	if (be_app != NULL && be_app->GetAppInfo(&info) == B_OK) {
 		BPath appPath(&info.ref);
 		appPath.GetParent(&fDataPath);
 		fDataPath.Append("data");
+
+		// Verify path exists
+		BDirectory testDir(fDataPath.Path());
+		if (testDir.InitCheck() == B_OK) {
+			found = true;
+		}
+	}
+
+	if (!found) {
+		// Try current working directory
+		fDataPath.SetTo("./data");
+		BDirectory testDir(fDataPath.Path());
+		if (testDir.InitCheck() != B_OK) {
+			// Last resort - absolute path for development
+			fDataPath.SetTo("/boot/home/Developer/ScoundrelHaiku/data");
+		}
 	}
 }
 

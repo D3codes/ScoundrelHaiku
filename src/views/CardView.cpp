@@ -9,10 +9,11 @@
 
 CardView::CardView(BRect frame, int32 index)
 	:
-	BView(frame, "cardView", B_FOLLOW_NONE, B_WILL_DRAW),
+	BView(frame, "cardView", B_FOLLOW_NONE, B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
 	fIndex(index),
 	fCard(NULL)
 {
+	// Transparent to allow dungeon background to show around cards
 	SetViewColor(B_TRANSPARENT_COLOR);
 }
 
@@ -55,12 +56,12 @@ CardView::DrawEmptySlot()
 {
 	BRect bounds = Bounds();
 
-	// Draw dark rounded rectangle for empty slot
-	SetHighColor(60, 60, 70);
+	// Draw semi-transparent dark rounded rectangle for empty slot
+	SetHighColor(40, 40, 50, 180);
 	FillRoundRect(bounds, 8, 8);
 
 	// Draw border
-	SetHighColor(80, 80, 90);
+	SetHighColor(60, 60, 70);
 	StrokeRoundRect(bounds, 8, 8);
 }
 
@@ -76,16 +77,16 @@ CardView::DrawCard()
 	shadowRect.OffsetBy(4, 4);
 	FillRoundRect(shadowRect, 12, 12);
 
-	// Draw paper background
+	// Always draw solid card background first
+	SetHighColor(kCardBackgroundColor);
+	FillRoundRect(bounds, 12, 12);
+
+	// Draw paper texture on top if available
 	BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
 	if (paperBg != NULL) {
 		SetDrawingMode(B_OP_ALPHA);
 		DrawBitmap(paperBg, paperBg->Bounds(), bounds);
 		SetDrawingMode(B_OP_COPY);
-	} else {
-		// Fallback to solid color
-		SetHighColor(kCardBackgroundColor);
-		FillRoundRect(bounds, 12, 12);
 	}
 
 	// Try to load card image

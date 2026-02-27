@@ -8,10 +8,11 @@
 StatsBarView::StatsBarView(BRect frame)
 	:
 	BView(frame, "statsBarView", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM,
-		B_WILL_DRAW),
+		B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
 	fPlayer(NULL)
 {
-	SetViewColor(B_TRANSPARENT_COLOR);
+	// Solid color fallback - Draw() will paint over it
+	SetViewColor(80, 60, 40);
 }
 
 

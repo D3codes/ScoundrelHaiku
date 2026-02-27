@@ -14,7 +14,7 @@ public:
 		  fLabel(label),
 		  fMessage(message)
 	{
-		SetViewColor(B_TRANSPARENT_COLOR);
+		SetViewColor(100, 70, 50);
 	}
 
 	virtual ~PlankButtonMenu() {
@@ -24,14 +24,15 @@ public:
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
 
+		// Always draw solid background first
+		SetHighColor(100, 70, 50);
+		FillRoundRect(bounds, 5, 5);
+
 		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("plank1");
 		if (plankBg != NULL) {
 			SetDrawingMode(B_OP_ALPHA);
 			DrawBitmap(plankBg, plankBg->Bounds(), bounds);
 			SetDrawingMode(B_OP_COPY);
-		} else {
-			SetHighColor(100, 70, 50);
-			FillRoundRect(bounds, 5, 5);
 		}
 
 		BFont font;
@@ -57,10 +58,11 @@ private:
 
 MainMenuView::MainMenuView(BRect frame)
 	:
-	BView(frame, "mainMenuView", B_FOLLOW_ALL, B_WILL_DRAW),
+	BView(frame, "mainMenuView", B_FOLLOW_ALL, B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
 	fHasSavedGame(false)
 {
-	SetViewColor(B_TRANSPARENT_COLOR);
+	// Use solid color - we draw our own background in Draw()
+	SetViewColor(30, 30, 40);
 
 	float centerX = frame.Width() / 2;
 	float buttonWidth = 200;

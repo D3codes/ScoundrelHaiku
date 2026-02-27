@@ -83,6 +83,7 @@ GameWindow::ShowGameBoard()
 	fMainMenuView->Hide();
 	fGameBoardView->Show();
 	fGameBoardView->SetGame(&fGame);
+	fGameBoardView->Invalidate();
 	fShowingMenu = false;
 }
 

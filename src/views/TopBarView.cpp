@@ -17,7 +17,7 @@ public:
 		  fMessage(message),
 		  fEnabled(true)
 	{
-		SetViewColor(B_TRANSPARENT_COLOR);
+		SetViewColor(80, 80, 90);
 	}
 
 	virtual ~StoneButton() {
@@ -27,14 +27,15 @@ public:
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
 
+		// Always draw solid background first
+		SetHighColor(80, 80, 90);
+		FillRoundRect(bounds, 8, 8);
+
 		BBitmap* stoneBg = ResourceLoader::Instance()->GetUIImage("stoneButton");
 		if (stoneBg != NULL) {
 			SetDrawingMode(B_OP_ALPHA);
 			DrawBitmap(stoneBg, stoneBg->Bounds(), bounds);
 			SetDrawingMode(B_OP_COPY);
-		} else {
-			SetHighColor(80, 80, 90);
-			FillRoundRect(bounds, 8, 8);
 		}
 
 		// Draw label
@@ -89,10 +90,11 @@ private:
 TopBarView::TopBarView(BRect frame)
 	:
 	BView(frame, "topBarView", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP,
-		B_WILL_DRAW),
+		B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
 	fGame(NULL)
 {
-	SetViewColor(B_TRANSPARENT_COLOR);
+	// Solid color fallback - Draw() will paint over it
+	SetViewColor(70, 70, 90);
 
 	float buttonSize = 50;
 	float iconBoxSize = 50;

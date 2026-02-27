@@ -6,9 +6,10 @@
 RoomView::RoomView(BRect frame)
 	:
 	BView(frame, "roomView", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP,
-		B_WILL_DRAW | B_FRAME_EVENTS),
+		B_WILL_DRAW | B_FRAME_EVENTS | B_FULL_UPDATE_ON_RESIZE),
 	fRoom(NULL)
 {
+	// Transparent to show GameBoardView's dungeon background
 	SetViewColor(B_TRANSPARENT_COLOR);
 
 	// Calculate card positions for 2x2 grid
@@ -81,4 +82,6 @@ RoomView::Refresh()
 			fCardViews[i]->ClearCard();
 		}
 	}
+
+	Invalidate();
 }

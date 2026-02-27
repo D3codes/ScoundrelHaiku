@@ -13,11 +13,13 @@
 
 GameBoardView::GameBoardView(BRect frame)
 	:
-	BView(frame, "gameBoardView", B_FOLLOW_ALL, B_WILL_DRAW),
+	BView(frame, "gameBoardView", B_FOLLOW_ALL,
+		B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
 	fGame(NULL),
 	fBackgroundIndex(1)
 {
-	SetViewColor(B_TRANSPARENT_COLOR);
+	// Don't use B_TRANSPARENT_COLOR - we draw our own background
+	SetViewColor(kBackgroundColor);
 	RandomizeBackground();
 
 	// Create top bar
@@ -57,7 +59,11 @@ GameBoardView::Draw(BRect updateRect)
 {
 	BRect bounds = Bounds();
 
-	// Draw dungeon background
+	// Always fill with solid background first to prevent show-through
+	SetHighColor(kBackgroundColor);
+	FillRect(bounds);
+
+	// Draw dungeon background on top
 	BString bgName;
 	bgName.SetToFormat("dungeon%d", fBackgroundIndex);
 	BBitmap* background = ResourceLoader::Instance()->GetBackground(bgName.String());
@@ -65,10 +71,6 @@ GameBoardView::Draw(BRect updateRect)
 	if (background != NULL) {
 		SetDrawingMode(B_OP_COPY);
 		DrawBitmap(background, background->Bounds(), bounds);
-	} else {
-		// Fallback to solid color
-		SetHighColor(kBackgroundColor);
-		FillRect(bounds);
 	}
 }
 
@@ -117,7 +119,12 @@ GameBoardView::Refresh()
 	if (fGame == NULL)
 		return;
 
-	fTopBarView->Refresh();
-	fRoomView->Refresh();
-	fStatsBarView->Refresh();
+	// Lock window for thread safety when called from observer
+	if (Window() != NULL && Window()->Lock()) {
+		fTopBarView->Refresh();
+		fRoomView->Refresh();
+		fStatsBarView->Refresh();
+		Invalidate();
+		Window()->Unlock();
+	}
 }
