@@ -8,7 +8,6 @@
 #include "utils/MessageCodes.h"
 
 #include <Bitmap.h>
-#include <OS.h>
 #include <stdlib.h>
 #include <Window.h>
 
@@ -17,11 +16,13 @@ GameBoardView::GameBoardView(BRect frame)
 	BView(frame, "gameBoardView", B_FOLLOW_ALL,
 		B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
 	fGame(NULL),
-	fBackgroundIndex(1)
+	fBackgroundIndex(1),
+	fTopBarView(NULL),
+	fRoomView(NULL),
+	fStatsBarView(NULL)
 {
 	// Don't use B_TRANSPARENT_COLOR - we draw our own background
 	SetViewColor(kBackgroundColor);
-	RandomizeBackground();
 
 	// Create top bar
 	BRect topBarRect(0, 0, frame.Width(), kTopBarHeight);
@@ -40,6 +41,9 @@ GameBoardView::GameBoardView(BRect frame)
 		frame.Width(), frame.Height());
 	fStatsBarView = new StatsBarView(statsRect);
 	AddChild(fStatsBarView);
+
+	// Now randomize background after views are created
+	RandomizeBackground();
 }
 
 
@@ -122,24 +126,13 @@ GameBoardView::Refresh()
 	if (fGame == NULL)
 		return;
 
-	if (Window() == NULL)
-		return;
-
-	// Check if we need to lock (window might already be locked during MessageReceived)
-	bool needsUnlock = false;
-	thread_id currentThread = find_thread(NULL);
-	if (Window()->LockingThread() != currentThread) {
-		if (Window()->LockWithTimeout(50000) != B_OK) {
-			return; // Can't get lock, skip this refresh
-		}
-		needsUnlock = true;
-	}
-
-	fTopBarView->Refresh();
-	fRoomView->Refresh();
-	fStatsBarView->Refresh();
+	// Simply refresh child views and invalidate
+	// Window is typically already locked during MessageReceived
+	if (fTopBarView != NULL)
+		fTopBarView->Refresh();
+	if (fRoomView != NULL)
+		fRoomView->Refresh();
+	if (fStatsBarView != NULL)
+		fStatsBarView->Refresh();
 	Invalidate();
-
-	if (needsUnlock)
-		Window()->Unlock();
 }
