@@ -28,14 +28,18 @@ GameWindow::GameWindow()
 	fMainMenuView = new MainMenuView(bounds);
 	fGameBoardView = new GameBoardView(bounds);
 
+	// Add both views, hide game board initially
+	AddChild(fMainMenuView);
+	AddChild(fGameBoardView);
+	fGameBoardView->Hide();
+
 	// Check for saved game
 	if (SaveManager::Instance()->HasSavedGame()) {
 		SaveManager::Instance()->LoadGame(&fGame);
 		fMainMenuView->SetHasSavedGame(true);
 	}
 
-	// Show main menu initially
-	ShowMainMenu();
+	fShowingMenu = true;
 }
 
 
@@ -63,15 +67,9 @@ GameWindow::ShowMainMenu()
 	if (fShowingMenu)
 		return;
 
-	if (fGameBoardView != NULL && fGameBoardView->Parent() != NULL) {
-		fGameBoardView->RemoveSelf();
-	}
-
-	if (fMainMenuView->Parent() == NULL) {
-		AddChild(fMainMenuView);
-	}
+	fGameBoardView->Hide();
+	fMainMenuView->Show();
 	fMainMenuView->SetHasSavedGame(SaveManager::Instance()->HasSavedGame());
-	fMainMenuView->Invalidate();
 	fShowingMenu = true;
 }
 
@@ -82,15 +80,9 @@ GameWindow::ShowGameBoard()
 	if (!fShowingMenu)
 		return;
 
-	if (fMainMenuView != NULL && fMainMenuView->Parent() != NULL) {
-		fMainMenuView->RemoveSelf();
-	}
-
-	if (fGameBoardView->Parent() == NULL) {
-		AddChild(fGameBoardView);
-	}
+	fMainMenuView->Hide();
+	fGameBoardView->Show();
 	fGameBoardView->SetGame(&fGame);
-	fGameBoardView->Invalidate();
 	fShowingMenu = false;
 }
 
