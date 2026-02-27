@@ -19,7 +19,7 @@ GameWindow::GameWindow()
 		B_NOT_RESIZABLE | B_NOT_ZOOMABLE | B_QUIT_ON_WINDOW_CLOSE),
 	fMainMenuView(NULL),
 	fGameBoardView(NULL),
-	fShowingMenu(true)
+	fShowingMenu(false)
 {
 	fGame.SetObserver(this);
 
