@@ -3,17 +3,22 @@
 #include "RoomView.h"
 #include "StatsBarView.h"
 #include "models/Game.h"
+#include "helpers/ResourceLoader.h"
 #include "utils/Constants.h"
 #include "utils/MessageCodes.h"
 
+#include <Bitmap.h>
+#include <stdlib.h>
 #include <Window.h>
 
 GameBoardView::GameBoardView(BRect frame)
 	:
 	BView(frame, "gameBoardView", B_FOLLOW_ALL, B_WILL_DRAW),
-	fGame(NULL)
+	fGame(NULL),
+	fBackgroundIndex(1)
 {
-	SetViewColor(kBackgroundColor);
+	SetViewColor(B_TRANSPARENT_COLOR);
+	RandomizeBackground();
 
 	// Create top bar
 	BRect topBarRect(0, 0, frame.Width(), kTopBarHeight);
@@ -50,7 +55,29 @@ GameBoardView::AttachedToWindow()
 void
 GameBoardView::Draw(BRect updateRect)
 {
-	// Background drawn by view color
+	BRect bounds = Bounds();
+
+	// Draw dungeon background
+	BString bgName;
+	bgName.SetToFormat("dungeon%d", fBackgroundIndex);
+	BBitmap* background = ResourceLoader::Instance()->GetBackground(bgName.String());
+
+	if (background != NULL) {
+		SetDrawingMode(B_OP_COPY);
+		DrawBitmap(background, background->Bounds(), bounds);
+	} else {
+		// Fallback to solid color
+		SetHighColor(kBackgroundColor);
+		FillRect(bounds);
+	}
+}
+
+
+void
+GameBoardView::RandomizeBackground()
+{
+	fBackgroundIndex = (rand() % 5) + 1; // dungeon1 through dungeon5
+	Invalidate();
 }
 
 

@@ -1,60 +1,97 @@
 #include "MainMenuView.h"
+#include "helpers/ResourceLoader.h"
 #include "utils/Constants.h"
 #include "utils/MessageCodes.h"
 
+#include <Bitmap.h>
 #include <Window.h>
+
+// Custom plank-style button for main menu
+class PlankButtonMenu : public BView {
+public:
+	PlankButtonMenu(BRect frame, const char* label, BMessage* message)
+		: BView(frame, "plankBtn", B_FOLLOW_NONE, B_WILL_DRAW),
+		  fLabel(label),
+		  fMessage(message)
+	{
+		SetViewColor(B_TRANSPARENT_COLOR);
+	}
+
+	virtual ~PlankButtonMenu() {
+		delete fMessage;
+	}
+
+	virtual void Draw(BRect updateRect) {
+		BRect bounds = Bounds();
+
+		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("plank1");
+		if (plankBg != NULL) {
+			SetDrawingMode(B_OP_ALPHA);
+			DrawBitmap(plankBg, plankBg->Bounds(), bounds);
+			SetDrawingMode(B_OP_COPY);
+		} else {
+			SetHighColor(100, 70, 50);
+			FillRoundRect(bounds, 5, 5);
+		}
+
+		BFont font;
+		font.SetSize(22);
+		font.SetFace(B_BOLD_FACE);
+		SetFont(&font);
+		SetHighColor(kTextColor);
+
+		float textWidth = StringWidth(fLabel.String());
+		DrawString(fLabel.String(),
+			BPoint((bounds.Width() - textWidth) / 2, bounds.Height() / 2 + 8));
+	}
+
+	virtual void MouseDown(BPoint where) {
+		Window()->PostMessage(fMessage);
+	}
+
+private:
+	BString fLabel;
+	BMessage* fMessage;
+};
+
 
 MainMenuView::MainMenuView(BRect frame)
 	:
-	BView(frame, "mainMenuView", B_FOLLOW_ALL, B_WILL_DRAW)
+	BView(frame, "mainMenuView", B_FOLLOW_ALL, B_WILL_DRAW),
+	fHasSavedGame(false)
 {
-	SetViewColor(kBackgroundColor);
+	SetViewColor(B_TRANSPARENT_COLOR);
 
 	float centerX = frame.Width() / 2;
-	float buttonWidth = 150;
-	float buttonHeight = 35;
+	float buttonWidth = 200;
+	float buttonHeight = 45;
 	float buttonX = centerX - buttonWidth / 2;
 
-	// Create title
-	fTitleView = new BStringView(BRect(0, 80, frame.Width(), 130),
-		"title", "SCOUNDREL");
-	fTitleView->SetAlignment(B_ALIGN_CENTER);
-	fTitleView->SetFont(be_bold_font);
-	fTitleView->SetFontSize(kTitleFontSize * 1.5);
-	fTitleView->SetHighColor(kTextColor);
-	AddChild(fTitleView);
-
-	// Subtitle
-	BStringView* subtitleView = new BStringView(
-		BRect(0, 130, frame.Width(), 160),
-		"subtitle", "A Dungeon Card Solitaire");
-	subtitleView->SetAlignment(B_ALIGN_CENTER);
-	subtitleView->SetHighColor(150, 150, 160);
-	AddChild(subtitleView);
+	// Resume button (initially hidden)
+	fResumeButton = new PlankButtonMenu(
+		BRect(buttonX, 220, buttonX + buttonWidth, 220 + buttonHeight),
+		"Resume", new BMessage(kMsgResumeGame));
 
 	// New Game button
-	fNewGameButton = new BButton(
-		BRect(buttonX, 200, buttonX + buttonWidth, 200 + buttonHeight),
-		"newGameBtn", "New Game", new BMessage(kMsgNewGame));
-	AddChild(fNewGameButton);
-
-	// Resume button (initially hidden)
-	fResumeButton = new BButton(
-		BRect(buttonX, 250, buttonX + buttonWidth, 250 + buttonHeight),
-		"resumeBtn", "Resume", new BMessage(kMsgResumeGame));
-	fResumeButton->Hide();
-	AddChild(fResumeButton);
+	fNewGameButton = new PlankButtonMenu(
+		BRect(buttonX, 280, buttonX + buttonWidth, 280 + buttonHeight),
+		"New Game", new BMessage(kMsgNewGame));
 
 	// How to Play button
-	fHowToPlayButton = new BButton(
-		BRect(buttonX, 300, buttonX + buttonWidth, 300 + buttonHeight),
-		"howToPlayBtn", "How to Play", new BMessage(kMsgHowToPlay));
+	fHowToPlayButton = new PlankButtonMenu(
+		BRect(buttonX, 340, buttonX + buttonWidth, 340 + buttonHeight),
+		"How to Play", new BMessage(kMsgHowToPlay));
+
+	AddChild(fNewGameButton);
 	AddChild(fHowToPlayButton);
 }
 
 
 MainMenuView::~MainMenuView()
 {
+	// Remove resume button if not added to view
+	if (fResumeButton->Parent() == NULL)
+		delete fResumeButton;
 }
 
 
@@ -62,45 +99,98 @@ void
 MainMenuView::AttachedToWindow()
 {
 	BView::AttachedToWindow();
-
-	fNewGameButton->SetTarget(Window());
-	fResumeButton->SetTarget(Window());
-	fHowToPlayButton->SetTarget(Window());
 }
 
 
 void
 MainMenuView::Draw(BRect updateRect)
 {
-	// Draw gradient background
 	BRect bounds = Bounds();
 
-	rgb_color topColor = {30, 30, 40, 255};
-	rgb_color bottomColor = {50, 50, 70, 255};
+	// Draw dark background
+	SetHighColor(30, 30, 40);
+	FillRect(bounds);
 
-	for (float y = bounds.top; y <= bounds.bottom; y++) {
-		float ratio = (y - bounds.top) / (bounds.bottom - bounds.top);
-		rgb_color color;
-		color.red = topColor.red + (bottomColor.red - topColor.red) * ratio;
-		color.green = topColor.green + (bottomColor.green - topColor.green) * ratio;
-		color.blue = topColor.blue + (bottomColor.blue - topColor.blue) * ratio;
-		color.alpha = 255;
-		SetHighColor(color);
-		StrokeLine(BPoint(bounds.left, y), BPoint(bounds.right, y));
+	// Draw title bar with stoneSlab2 background
+	BRect titleBarRect(0, 0, bounds.Width(), 80);
+
+	BBitmap* stoneBg = ResourceLoader::Instance()->GetUIImage("stoneSlab2");
+	if (stoneBg != NULL) {
+		SetDrawingMode(B_OP_ALPHA);
+		DrawBitmap(stoneBg, stoneBg->Bounds(), titleBarRect);
+		SetDrawingMode(B_OP_COPY);
+	} else {
+		SetHighColor(70, 70, 90);
+		FillRect(titleBarRect);
 	}
+
+	// Draw title shadow
+	SetHighColor(0, 0, 0, 150);
+	StrokeLine(BPoint(0, titleBarRect.bottom + 1),
+		BPoint(bounds.Width(), titleBarRect.bottom + 1));
+	StrokeLine(BPoint(0, titleBarRect.bottom + 2),
+		BPoint(bounds.Width(), titleBarRect.bottom + 2));
+
+	// Draw title "SCOUNDREL"
+	BFont titleFont;
+	titleFont.SetSize(40);
+	titleFont.SetFace(B_BOLD_FACE);
+	SetFont(&titleFont);
+
+	const char* title = "SCOUNDREL";
+	float titleWidth = StringWidth(title);
+	float titleX = (bounds.Width() - titleWidth) / 2;
+	float titleY = 55;
+
+	// Draw shadow
+	SetHighColor(0, 0, 0, 200);
+	DrawString(title, BPoint(titleX + 2, titleY + 2));
+
+	// Draw title
+	SetHighColor(kTextColor);
+	DrawString(title, BPoint(titleX, titleY));
+
+	// Draw subtitle
+	BFont subtitleFont;
+	subtitleFont.SetSize(16);
+	SetFont(&subtitleFont);
+	SetHighColor(150, 150, 160);
+
+	const char* subtitle = "A Dungeon Card Solitaire";
+	float subtitleWidth = StringWidth(subtitle);
+	DrawString(subtitle, BPoint((bounds.Width() - subtitleWidth) / 2, 160));
 }
 
 
 void
 MainMenuView::SetHasSavedGame(bool hasSaved)
 {
+	if (hasSaved == fHasSavedGame)
+		return;
+
+	fHasSavedGame = hasSaved;
+
+	float centerX = Bounds().Width() / 2;
+	float buttonWidth = 200;
+	float buttonHeight = 45;
+	float buttonX = centerX - buttonWidth / 2;
+
 	if (hasSaved) {
-		fResumeButton->Show();
-		// Move How to Play button down
-		fHowToPlayButton->MoveTo(fHowToPlayButton->Frame().left, 300);
+		// Add resume button and adjust other buttons
+		if (fResumeButton->Parent() == NULL)
+			AddChild(fResumeButton);
+
+		fResumeButton->MoveTo(buttonX, 220);
+		fNewGameButton->MoveTo(buttonX, 280);
+		fHowToPlayButton->MoveTo(buttonX, 340);
 	} else {
-		fResumeButton->Hide();
-		// Move How to Play button up
-		fHowToPlayButton->MoveTo(fHowToPlayButton->Frame().left, 250);
+		// Remove resume button and move others up
+		if (fResumeButton->Parent() != NULL)
+			fResumeButton->RemoveSelf();
+
+		fNewGameButton->MoveTo(buttonX, 250);
+		fHowToPlayButton->MoveTo(buttonX, 310);
 	}
+
+	Invalidate();
 }

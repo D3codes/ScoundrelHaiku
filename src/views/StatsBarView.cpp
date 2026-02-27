@@ -11,7 +11,7 @@ StatsBarView::StatsBarView(BRect frame)
 		B_WILL_DRAW),
 	fPlayer(NULL)
 {
-	SetViewColor(kBackgroundColor);
+	SetViewColor(B_TRANSPARENT_COLOR);
 }
 
 
@@ -39,132 +39,150 @@ void
 StatsBarView::Draw(BRect updateRect)
 {
 	BRect bounds = Bounds();
-	float padding = 20;
-	float barHeight = 25;
-	float barWidth = bounds.Width() - padding * 2;
-	float iconSize = 24;
 
-	// Draw health bar
-	BRect healthBarRect(padding + iconSize + 10, 10,
-		padding + iconSize + 10 + barWidth - iconSize - 10, 10 + barHeight);
-	DrawHealthBar(healthBarRect);
-
-	// Draw heart icon
-	BBitmap* heartIcon = ResourceLoader::Instance()->GetGlyph("heart1");
-	if (heartIcon != NULL) {
-		DrawBitmap(heartIcon, BPoint(padding, 10));
+	// Draw wood background
+	BBitmap* woodBg = ResourceLoader::Instance()->GetUIImage("wood2");
+	if (woodBg != NULL) {
+		SetDrawingMode(B_OP_COPY);
+		DrawBitmap(woodBg, woodBg->Bounds(), bounds);
 	} else {
-		SetHighColor(kHealthBarColor);
-		FillEllipse(BRect(padding, 10, padding + iconSize, 10 + iconSize));
+		// Fallback
+		SetHighColor(kBackgroundColor);
+		FillRect(bounds);
 	}
 
-	// Draw weapon bar
-	BRect weaponBarRect(padding + iconSize + 10, 45,
-		padding + iconSize + 10 + barWidth - iconSize - 10, 45 + barHeight);
-	DrawWeaponBar(weaponBarRect);
+	// Draw top shadow
+	SetHighColor(0, 0, 0, 100);
+	StrokeLine(BPoint(bounds.left, bounds.top),
+		BPoint(bounds.right, bounds.top));
+	StrokeLine(BPoint(bounds.left, bounds.top + 1),
+		BPoint(bounds.right, bounds.top + 1));
 
-	// Draw sword icon
-	BBitmap* swordIcon = ResourceLoader::Instance()->GetGlyph("sword1");
-	if (swordIcon != NULL) {
-		DrawBitmap(swordIcon, BPoint(padding, 45));
-	} else {
-		SetHighColor(kWeaponBarColor);
-		FillRect(BRect(padding + 8, 45, padding + 16, 45 + iconSize));
-	}
+	float padding = 15;
+	float iconBoxSize = 50;
+	float barHeight = 10;
+
+	// === HEALTH ROW ===
+	float healthY = 10;
+
+	// Draw health icon box (heart + number)
+	DrawIconBox(BRect(padding, healthY, padding + iconBoxSize, healthY + iconBoxSize),
+		"heart1", fPlayer != NULL ? fPlayer->Health() : 0);
+
+	// Draw health progress bar (capsule style)
+	float barX = padding + iconBoxSize + 10;
+	float barWidth = bounds.Width() - barX - padding;
+	BRect healthBarRect(barX, healthY + (iconBoxSize - barHeight) / 2,
+		barX + barWidth, healthY + (iconBoxSize + barHeight) / 2);
+	DrawProgressBar(healthBarRect, kHealthBarColor,
+		fPlayer != NULL ? (float)fPlayer->Health() / kMaxHealth : 0);
+
+	// === WEAPON ROW ===
+	float weaponY = healthY + iconBoxSize + 10;
+
+	// Draw shield icon box (weapon strength)
+	DrawIconBox(BRect(padding, weaponY, padding + iconBoxSize, weaponY + iconBoxSize),
+		"shield1", fPlayer != NULL && fPlayer->HasWeapon() ? fPlayer->Weapon() : 0);
+
+	// Draw sword icon box (strongest monster attackable)
+	float swordX = padding + iconBoxSize + 8;
+	int strongestMonster = fPlayer != NULL ? fPlayer->StrongestMonsterCanAttack() : 0;
+	DrawIconBox(BRect(swordX, weaponY, swordX + iconBoxSize, weaponY + iconBoxSize),
+		"sword1", strongestMonster);
+
+	// Draw weapon progress bar (capsule style)
+	float weaponBarX = swordX + iconBoxSize + 10;
+	float weaponBarWidth = bounds.Width() - weaponBarX - padding;
+	BRect weaponBarRect(weaponBarX, weaponY + (iconBoxSize - barHeight) / 2,
+		weaponBarX + weaponBarWidth, weaponY + (iconBoxSize + barHeight) / 2);
+	DrawProgressBar(weaponBarRect, kWeaponBarColor,
+		strongestMonster > 0 ? (float)strongestMonster / kMaxMonsterStrength : 0);
 }
 
 
 void
-StatsBarView::DrawHealthBar(BRect barRect)
+StatsBarView::DrawIconBox(BRect boxRect, const char* iconName, int value)
 {
-	// Draw background
-	SetHighColor(60, 30, 30);
-	FillRoundRect(barRect, 5, 5);
+	// Draw rounded rect background with glass-like material effect
+	SetHighColor(60, 60, 70, 200);
+	FillRoundRect(boxRect, 10, 10);
+
+	// Draw subtle border
+	SetHighColor(80, 80, 90);
+	StrokeRoundRect(boxRect, 10, 10);
+
+	// Draw shadow
+	SetHighColor(0, 0, 0, 100);
+	BRect shadowRect = boxRect;
+	shadowRect.OffsetBy(2, 2);
+	StrokeRoundRect(shadowRect, 10, 10);
+
+	// Draw icon
+	float iconSize = 30;
+	float iconX = boxRect.left + (boxRect.Width() - iconSize) / 2;
+	float iconY = boxRect.top + 5;
+
+	BBitmap* icon = ResourceLoader::Instance()->GetGlyph(iconName);
+	if (icon != NULL) {
+		SetDrawingMode(B_OP_ALPHA);
+		DrawBitmap(icon, BRect(0, 0, icon->Bounds().Width(), icon->Bounds().Height()),
+			BRect(iconX, iconY, iconX + iconSize, iconY + iconSize));
+		SetDrawingMode(B_OP_COPY);
+	}
+
+	// Draw value text below icon
+	BFont font;
+	font.SetSize(18);
+	font.SetFace(B_BOLD_FACE);
+	SetFont(&font);
+	SetHighColor(kTextColor);
+
+	BString valueStr;
+	valueStr.SetToFormat("%d", value);
+	float textWidth = StringWidth(valueStr.String());
+	float textX = boxRect.left + (boxRect.Width() - textWidth) / 2;
+	float textY = boxRect.bottom - 5;
+	DrawString(valueStr.String(), BPoint(textX, textY));
+}
+
+
+void
+StatsBarView::DrawProgressBar(BRect barRect, rgb_color fillColor, float fillRatio)
+{
+	float radius = barRect.Height() / 2;
+
+	// Draw capsule background with material effect
+	SetHighColor(40, 40, 50, 200);
+	FillRoundRect(barRect, radius, radius);
+
+	// Draw shadow
+	SetHighColor(0, 0, 0, 80);
+	BRect shadowRect = barRect;
+	shadowRect.OffsetBy(1, 1);
+	StrokeRoundRect(shadowRect, radius, radius);
 
 	// Draw filled portion
-	if (fPlayer != NULL && fPlayer->Health() > 0) {
-		float fillRatio = (float)fPlayer->Health() / kMaxHealth;
+	if (fillRatio > 0) {
 		BRect fillRect = barRect;
 		fillRect.right = fillRect.left + (barRect.Width() * fillRatio);
-
-		SetHighColor(kHealthBarColor);
-		FillRoundRect(fillRect, 5, 5);
-	}
-
-	// Draw border
-	SetHighColor(100, 50, 50);
-	StrokeRoundRect(barRect, 5, 5);
-
-	// Draw health text
-	if (fPlayer != NULL) {
-		SetHighColor(kTextColor);
-		BFont font;
-		font.SetSize(kBodyFontSize);
-		font.SetFace(B_BOLD_FACE);
-		SetFont(&font);
-
-		BString healthStr;
-		healthStr.SetToFormat("%d / %d", fPlayer->Health(), kMaxHealth);
-		float textWidth = StringWidth(healthStr.String());
-		float textX = barRect.left + (barRect.Width() - textWidth) / 2;
-		float textY = barRect.top + barRect.Height() / 2 + 5;
-		DrawString(healthStr.String(), BPoint(textX, textY));
-	}
-}
-
-
-void
-StatsBarView::DrawWeaponBar(BRect barRect)
-{
-	// Draw background
-	SetHighColor(30, 30, 60);
-	FillRoundRect(barRect, 5, 5);
-
-	// Draw filled portion based on weapon strength
-	if (fPlayer != NULL && fPlayer->HasWeapon()) {
-		float fillRatio = (float)fPlayer->Weapon() / kMaxWeaponStrength;
-		BRect fillRect = barRect;
-		fillRect.right = fillRect.left + (barRect.Width() * fillRatio);
-
-		SetHighColor(kWeaponBarColor);
-		FillRoundRect(fillRect, 5, 5);
-
-		// Draw strongest monster indicator
-		int strongestMonster = fPlayer->StrongestMonsterCanAttack();
-		if (strongestMonster > 0) {
-			// Draw a marker showing attack limit
-			float markerX = barRect.left +
-				(barRect.Width() * (float)strongestMonster / kMaxMonsterStrength);
-			SetHighColor(200, 200, 100);
-			StrokeLine(BPoint(markerX, barRect.top),
-				BPoint(markerX, barRect.bottom));
+		if (fillRect.Width() > radius * 2) {
+			SetHighColor(fillColor);
+			FillRoundRect(fillRect, radius, radius);
+		} else if (fillRect.Width() > 0) {
+			// For very small fills, just draw a circle
+			SetHighColor(fillColor);
+			FillEllipse(BPoint(fillRect.left + radius, fillRect.top + radius),
+				radius, radius);
 		}
 	}
 
+	// Draw gradient highlight on top
+	SetHighColor(255, 255, 255, 40);
+	BRect highlightRect = barRect;
+	highlightRect.bottom = highlightRect.top + barRect.Height() / 3;
+	FillRoundRect(highlightRect, radius / 2, radius / 2);
+
 	// Draw border
-	SetHighColor(50, 50, 100);
-	StrokeRoundRect(barRect, 5, 5);
-
-	// Draw weapon text
-	SetHighColor(kTextColor);
-	BFont font;
-	font.SetSize(kBodyFontSize);
-	font.SetFace(B_BOLD_FACE);
-	SetFont(&font);
-
-	BString weaponStr;
-	if (fPlayer != NULL && fPlayer->HasWeapon()) {
-		int strongest = fPlayer->StrongestMonsterCanAttack();
-		if (strongest > 0)
-			weaponStr.SetToFormat("Str: %d (max: %d)", fPlayer->Weapon(), strongest);
-		else
-			weaponStr.SetToFormat("Str: %d", fPlayer->Weapon());
-	} else {
-		weaponStr = "Unarmed";
-	}
-
-	float textWidth = StringWidth(weaponStr.String());
-	float textX = barRect.left + (barRect.Width() - textWidth) / 2;
-	float textY = barRect.top + barRect.Height() / 2 + 5;
-	DrawString(weaponStr.String(), BPoint(textX, textY));
+	SetHighColor(100, 100, 110);
+	StrokeRoundRect(barRect, radius, radius);
 }

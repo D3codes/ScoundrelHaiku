@@ -9,7 +9,7 @@ RoomView::RoomView(BRect frame)
 		B_WILL_DRAW | B_FRAME_EVENTS),
 	fRoom(NULL)
 {
-	SetViewColor(kBackgroundColor);
+	SetViewColor(B_TRANSPARENT_COLOR);
 
 	// Calculate card positions for 2x2 grid
 	float cardWidth = kCardWidth;

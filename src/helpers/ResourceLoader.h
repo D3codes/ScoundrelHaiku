@@ -22,6 +22,7 @@ public:
 	BBitmap*			GetCardImage(const char* cardImageName);
 	BBitmap*			GetGlyph(const char* glyphName);
 	BBitmap*			GetUIImage(const char* uiImageName);
+	BBitmap*			GetBackground(const char* backgroundName);
 
 	BPath				GetDataPath() const;
 

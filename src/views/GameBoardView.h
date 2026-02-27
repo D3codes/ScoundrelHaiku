@@ -19,12 +19,14 @@ public:
 
 	void				SetGame(Game* game);
 	void				Refresh();
+	void				RandomizeBackground();
 
 private:
 	TopBarView*			fTopBarView;
 	RoomView*			fRoomView;
 	StatsBarView*		fStatsBarView;
 	Game*				fGame;
+	int					fBackgroundIndex;
 };
 
 #endif // GAME_BOARD_VIEW_H

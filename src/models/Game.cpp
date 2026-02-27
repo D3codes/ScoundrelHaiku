@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "helpers/SoundPlayer.h"
 #include "utils/Constants.h"
 
 Game::Game()
@@ -98,6 +99,7 @@ void
 Game::Pause()
 {
 	if (fState == kGameStatePlaying) {
+		SoundPlayer::Instance()->PlaySound(SFX_PAGE);
 		fState = kGameStatePaused;
 		NotifyStateChanged();
 	}
@@ -121,6 +123,7 @@ Game::EquipWeapon(int cardIndex)
 	if (card == NULL || card->Suit() != kSuitWeapon)
 		return;
 
+	SoundPlayer::Instance()->PlayRandomEquip();
 	fPlayer.EquipWeapon(card->Strength());
 	NotifyPlayerUpdated();
 
@@ -139,12 +142,14 @@ Game::UseHealthPotion(int cardIndex)
 	if (fPlayer.Health() == kMaxHealth) {
 		// Already at full health - gain bonus points instead
 		fBonusPoints = card->Strength();
+		SoundPlayer::Instance()->PlaySound(SFX_SPARKLE);
 	} else if (!fRoom.UsedHealthPotion()) {
 		// Can only use one potion per room
 		fPlayer.UseHealthPotion(card->Strength());
 		fRoom.SetUsedHealthPotion(true);
+		SoundPlayer::Instance()->PlaySound(SFX_SPARKLE);
 	}
-	// If potion already used this room, card is just discarded
+	// If potion already used this room, card is just discarded (no sound in iOS)
 
 	NotifyPlayerUpdated();
 	EndAction(cardIndex);
@@ -160,6 +165,13 @@ Game::AttackMonster(int cardIndex, bool attackUnarmed)
 
 	int monsterStrength = card->Strength();
 	bool withWeapon = !attackUnarmed && fPlayer.CanAttackWithWeapon(monsterStrength);
+
+	// Play attack sound
+	if (withWeapon) {
+		SoundPlayer::Instance()->PlayRandomSword();
+	} else {
+		SoundPlayer::Instance()->PlayRandomPunch();
+	}
 
 	fPlayer.Attack(withWeapon, monsterStrength);
 	NotifyPlayerUpdated();
@@ -184,7 +196,8 @@ Game::Flee()
 	if (!fRoom.CanFlee())
 		return;
 
-	bool fledLastRoom = fRoom.PlayerFled();
+	SoundPlayer::Instance()->PlaySound(SFX_SHUFFLE);
+
 	fRoom.Flee(&fDeck);
 
 	// Deal new room
@@ -232,6 +245,8 @@ Game::HandleDungeonCompletion()
 	// Add bonus points from perfect health potion usage
 	fScore += fBonusPoints;
 
+	SoundPlayer::Instance()->PlaySound(SFX_FANFARE);
+
 	NotifyScoreUpdated();
 
 	fState = kGameStateDungeonBeat;
@@ -242,6 +257,7 @@ Game::HandleDungeonCompletion()
 void
 Game::EndGame()
 {
+	SoundPlayer::Instance()->PlaySound(SFX_GAMEOVER);
 	fState = kGameStateGameOver;
 	NotifyStateChanged();
 }

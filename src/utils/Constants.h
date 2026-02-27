@@ -20,10 +20,10 @@ const float kCardSpacing = 10.0f;
 const float kRoomPadding = 20.0f;
 
 // Top bar dimensions
-const float kTopBarHeight = 50.0f;
+const float kTopBarHeight = 80.0f;
 
 // Stats bar dimensions
-const float kStatsBarHeight = 80.0f;
+const float kStatsBarHeight = 130.0f;
 
 // Button dimensions
 const float kButtonWidth = 100.0f;

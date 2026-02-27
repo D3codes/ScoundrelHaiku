@@ -94,6 +94,7 @@ GameWindow::MessageReceived(BMessage* message)
 		case kMsgNewGame:
 			fGame.NewGame();
 			SaveManager::Instance()->DeleteSavedGame();
+			fGameBoardView->RandomizeBackground();
 			ShowGameBoard();
 			break;
 
@@ -128,6 +129,7 @@ GameWindow::MessageReceived(BMessage* message)
 			break;
 
 		case kMsgNextDungeon:
+			fGameBoardView->RandomizeBackground();
 			fGame.NextDungeon();
 			break;
 
@@ -164,7 +166,7 @@ GameWindow::ShowCardActionModal(int32 cardIndex)
 	}
 
 	CardActionWindow* modal = new CardActionWindow(this, card, cardIndex,
-		canUseWeapon);
+		canUseWeapon, fGame.GetPlayer());
 	modal->Show();
 }
 

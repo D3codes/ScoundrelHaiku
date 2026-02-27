@@ -108,6 +108,15 @@ ResourceLoader::GetUIImage(const char* uiImageName)
 
 
 BBitmap*
+ResourceLoader::GetBackground(const char* backgroundName)
+{
+	BString fullPath;
+	fullPath.SetToFormat("images/backgrounds/%s.png", backgroundName);
+	return LoadBitmap(fullPath.String());
+}
+
+
+BBitmap*
 ResourceLoader::LoadFromPath(const BPath& path)
 {
 	BFile file(path.Path(), B_READ_ONLY);

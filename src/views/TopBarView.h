@@ -1,8 +1,6 @@
 #ifndef TOP_BAR_VIEW_H
 #define TOP_BAR_VIEW_H
 
-#include <Button.h>
-#include <StringView.h>
 #include <View.h>
 
 class Game;
@@ -19,11 +17,11 @@ public:
 	void				Refresh();
 
 private:
-	BButton*			fPauseButton;
-	BButton*			fFleeButton;
-	BStringView*		fDeckCountView;
-	BStringView*		fScoreView;
-	BStringView*		fDungeonView;
+	void				DrawIconBox(BRect boxRect, const char* iconName, int value);
+	void				DrawScoreBox(BRect boxRect);
+
+	BView*				fPauseButton;
+	BView*				fFleeButton;
 
 	Game*				fGame;
 };

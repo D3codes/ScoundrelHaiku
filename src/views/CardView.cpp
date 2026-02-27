@@ -70,35 +70,51 @@ CardView::DrawCard()
 {
 	BRect bounds = Bounds();
 
-	// Draw card background (paper color)
-	SetHighColor(kCardBackgroundColor);
-	FillRoundRect(bounds, 8, 8);
+	// Draw shadow first
+	SetHighColor(0, 0, 0, 100);
+	BRect shadowRect = bounds;
+	shadowRect.OffsetBy(4, 4);
+	FillRoundRect(shadowRect, 12, 12);
 
-	// Draw card border with suit color
-	rgb_color cardColor = fCard->GetColor();
-	SetHighColor(cardColor);
-	SetPenSize(2);
-	StrokeRoundRect(bounds, 8, 8);
-	SetPenSize(1);
+	// Draw paper background
+	BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
+	if (paperBg != NULL) {
+		SetDrawingMode(B_OP_ALPHA);
+		DrawBitmap(paperBg, paperBg->Bounds(), bounds);
+		SetDrawingMode(B_OP_COPY);
+	} else {
+		// Fallback to solid color
+		SetHighColor(kCardBackgroundColor);
+		FillRoundRect(bounds, 12, 12);
+	}
 
 	// Try to load card image
 	BBitmap* cardImage = ResourceLoader::Instance()->GetCardImage(
 		fCard->GetImageName().String());
 
+	float bottomAreaHeight = 45;
+	float imageAreaHeight = bounds.Height() - bottomAreaHeight;
+
 	if (cardImage != NULL) {
-		// Draw card image centered
+		// Draw card image in upper portion
 		BRect imageRect = cardImage->Bounds();
-		float scale = (bounds.Width() - 20) / imageRect.Width();
-		if ((bounds.Height() - 40) / imageRect.Height() < scale)
-			scale = (bounds.Height() - 40) / imageRect.Height();
+		float padding = 10;
+		float availWidth = bounds.Width() - padding * 2;
+		float availHeight = imageAreaHeight - padding * 2;
+
+		float scale = availWidth / imageRect.Width();
+		if (availHeight / imageRect.Height() < scale)
+			scale = availHeight / imageRect.Height();
 
 		float imageWidth = imageRect.Width() * scale;
 		float imageHeight = imageRect.Height() * scale;
 		float imageX = (bounds.Width() - imageWidth) / 2;
-		float imageY = 20;
+		float imageY = padding;
 
 		BRect destRect(imageX, imageY, imageX + imageWidth, imageY + imageHeight);
+		SetDrawingMode(B_OP_ALPHA);
 		DrawBitmap(cardImage, imageRect, destRect);
+		SetDrawingMode(B_OP_COPY);
 	} else {
 		// Draw placeholder icon
 		BBitmap* icon = ResourceLoader::Instance()->GetGlyph(
@@ -107,46 +123,46 @@ CardView::DrawCard()
 		if (icon != NULL) {
 			BRect iconRect = icon->Bounds();
 			float iconX = (bounds.Width() - iconRect.Width()) / 2;
-			float iconY = (bounds.Height() - iconRect.Height()) / 2 - 10;
+			float iconY = (imageAreaHeight - iconRect.Height()) / 2;
+			SetDrawingMode(B_OP_ALPHA);
 			DrawBitmap(icon, BPoint(iconX, iconY));
-		} else {
-			// Draw text placeholder if no icon
-			SetHighColor(cardColor);
-			BFont font;
-			font.SetSize(kHeadingFontSize);
-			SetFont(&font);
-
-			const char* suitName = "";
-			switch (fCard->Suit()) {
-				case kSuitWeapon:
-					suitName = "Weapon";
-					break;
-				case kSuitHealthPotion:
-					suitName = "Potion";
-					break;
-				case kSuitMonster:
-					suitName = "Monster";
-					break;
-			}
-
-			float textWidth = StringWidth(suitName);
-			DrawString(suitName, BPoint((bounds.Width() - textWidth) / 2,
-				bounds.Height() / 2));
+			SetDrawingMode(B_OP_COPY);
 		}
 	}
 
-	// Draw strength number at bottom
-	SetHighColor(cardColor);
+	// Draw icon + strength number at bottom (iOS style)
+	float iconSize = 24;
+	BBitmap* suitIcon = ResourceLoader::Instance()->GetGlyph(
+		fCard->GetIconName().String());
+
 	BFont font;
-	font.SetSize(kTitleFontSize);
+	font.SetSize(24);
 	font.SetFace(B_BOLD_FACE);
 	SetFont(&font);
 
 	BString strengthStr;
 	strengthStr.SetToFormat("%d", fCard->Strength());
 	float textWidth = StringWidth(strengthStr.String());
+
+	// Calculate total width of icon + spacing + text
+	float spacing = 8;
+	float totalWidth = iconSize + spacing + textWidth;
+	float startX = (bounds.Width() - totalWidth) / 2;
+	float bottomY = bounds.Height() - 12;
+
+	// Draw icon
+	if (suitIcon != NULL) {
+		SetDrawingMode(B_OP_ALPHA);
+		DrawBitmap(suitIcon, BRect(0, 0, suitIcon->Bounds().Width(),
+			suitIcon->Bounds().Height()),
+			BRect(startX, bottomY - iconSize, startX + iconSize, bottomY));
+		SetDrawingMode(B_OP_COPY);
+	}
+
+	// Draw strength number
+	SetHighColor(0, 0, 0);
 	DrawString(strengthStr.String(),
-		BPoint((bounds.Width() - textWidth) / 2, bounds.Height() - 12));
+		BPoint(startX + iconSize + spacing, bottomY - 3));
 }
 
 

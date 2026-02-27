@@ -1,8 +1,6 @@
 #ifndef MAIN_MENU_VIEW_H
 #define MAIN_MENU_VIEW_H
 
-#include <Button.h>
-#include <StringView.h>
 #include <View.h>
 
 class MainMenuView : public BView {
@@ -16,10 +14,10 @@ public:
 	void				SetHasSavedGame(bool hasSaved);
 
 private:
-	BStringView*		fTitleView;
-	BButton*			fNewGameButton;
-	BButton*			fResumeButton;
-	BButton*			fHowToPlayButton;
+	BView*				fNewGameButton;
+	BView*				fResumeButton;
+	BView*				fHowToPlayButton;
+	bool				fHasSavedGame;
 };
 
 #endif // MAIN_MENU_VIEW_H

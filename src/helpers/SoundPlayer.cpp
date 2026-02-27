@@ -2,6 +2,7 @@
 #include "ResourceLoader.h"
 
 #include <SimpleGameSound.h>
+#include <stdlib.h>
 
 SoundPlayer* SoundPlayer::sInstance = NULL;
 
@@ -25,7 +26,7 @@ SoundPlayer::Destroy()
 
 SoundPlayer::SoundPlayer()
 	:
-	fCache(10, true), // owns items
+	fCache(20, true), // owns items
 	fMuted(false)
 {
 	BPath dataPath = ResourceLoader::Instance()->GetDataPath();
@@ -64,6 +65,33 @@ SoundPlayer::PlaySound(const char* soundName)
 
 
 void
+SoundPlayer::PlayRandomSword()
+{
+	const char* sounds[] = {SFX_SWORD1, SFX_SWORD2, SFX_SWORD3, SFX_SWORD4};
+	int index = rand() % 4;
+	PlaySound(sounds[index]);
+}
+
+
+void
+SoundPlayer::PlayRandomPunch()
+{
+	const char* sounds[] = {SFX_PUNCH1, SFX_PUNCH2, SFX_PUNCH3, SFX_PUNCH4, SFX_PUNCH5};
+	int index = rand() % 5;
+	PlaySound(sounds[index]);
+}
+
+
+void
+SoundPlayer::PlayRandomEquip()
+{
+	const char* sounds[] = {SFX_EQUIP, SFX_EQUIP2};
+	int index = rand() % 2;
+	PlaySound(sounds[index]);
+}
+
+
+void
 SoundPlayer::SetMuted(bool muted)
 {
 	fMuted = muted;
@@ -73,24 +101,28 @@ SoundPlayer::SetMuted(bool muted)
 BSimpleGameSound*
 SoundPlayer::LoadSound(const char* name)
 {
-	BPath path(fSoundPath);
-	BString filename;
-	filename.SetToFormat("%s.wav", name);
-	path.Append(filename.String());
+	// Try .mp3 first, then .m4a, then .wav
+	const char* extensions[] = {".mp3", ".m4a", ".wav"};
 
-	BSimpleGameSound* sound = new BSimpleGameSound(path.Path());
-	if (sound->InitCheck() != B_OK) {
+	for (int i = 0; i < 3; i++) {
+		BPath path(fSoundPath);
+		BString filename;
+		filename.SetToFormat("%s%s", name, extensions[i]);
+		path.Append(filename.String());
+
+		BSimpleGameSound* sound = new BSimpleGameSound(path.Path());
+		if (sound->InitCheck() == B_OK) {
+			// Cache the sound
+			SoundCacheEntry* entry = new SoundCacheEntry();
+			entry->name = name;
+			entry->sound = sound;
+			fCache.AddItem(entry);
+			return sound;
+		}
 		delete sound;
-		return NULL;
 	}
 
-	// Cache the sound
-	SoundCacheEntry* entry = new SoundCacheEntry();
-	entry->name = name;
-	entry->sound = sound;
-	fCache.AddItem(entry);
-
-	return sound;
+	return NULL;
 }
 
 
