@@ -28,7 +28,7 @@ SRCS = \
 
 RDEFS = resources/Scoundrel.rdef
 
-LIBS = be media game translation tracker
+LIBS = be media game translation tracker stdc++
 LIBPATHS =
 SYSTEM_INCLUDE_PATHS =
 LOCAL_INCLUDE_PATHS = src
