@@ -579,7 +579,10 @@ RoomView::StartDealAnimation()
 	fIsDealing = true;
 
 	if (fNextCardToDeal >= 0) {
-		DealNextCard();
+		// Add a delay before first deal so user can see the deck count after flee
+		delete fDealRunner;
+		BMessage dealMsg(kMsgDealNextCard);
+		fDealRunner = new BMessageRunner(BMessenger(this), &dealMsg, kDealDelay, 1);
 	} else {
 		fIsDealing = false;
 	}
