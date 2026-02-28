@@ -337,6 +337,8 @@ RoomView::Refresh()
 	if (fRoom == NULL) {
 		for (int i = 0; i < 4; i++) {
 			fCardViews[i]->ClearCard();
+			if (fCardViews[i]->IsHidden())
+				fCardViews[i]->Show();
 		}
 		return;
 	}
@@ -345,8 +347,13 @@ RoomView::Refresh()
 		Card* card = fRoom->GetCard(i);
 		if (card != NULL) {
 			fCardViews[i]->SetCard(card);
+			if (fCardViews[i]->IsHidden())
+				fCardViews[i]->Show();
 		} else {
 			fCardViews[i]->ClearCard();
+			// Keep empty slots visible to show background
+			if (fCardViews[i]->IsHidden())
+				fCardViews[i]->Show();
 		}
 	}
 
@@ -399,7 +406,9 @@ RoomView::RefreshWithAnimation()
 		if (isCarriedOver) {
 			// Card carried over from previous room - don't animate, leave as is
 			fAnimations[i].card = NULL;
-			// CardView already displays this card correctly
+			// Make sure CardView is visible
+			if (fCardViews[i]->IsHidden())
+				fCardViews[i]->Show();
 		} else if (isNewCard) {
 			// New card - set up animation
 			fAnimations[i].card = roomCard;
@@ -408,18 +417,20 @@ RoomView::RefreshWithAnimation()
 			fAnimations[i].startScale = 0.3f;  // Start small (deck size)
 			fAnimations[i].endScale = 1.0f;    // End full size
 
-			// Clear the card view - we'll draw during animation
-			fCardViews[i]->SetAnimating(true);
+			// Hide the CardView during animation - RoomView will draw the animated card
 			fCardViews[i]->ClearCard();
+			if (!fCardViews[i]->IsHidden())
+				fCardViews[i]->Hide();
 
 			// Find first card to deal
 			if (fNextCardToDeal < 0)
 				fNextCardToDeal = i;
 		} else {
-			// Empty slot or stale card - clear it
+			// Empty slot or stale card - clear it and hide
 			fAnimations[i].card = NULL;
-			fCardViews[i]->SetAnimating(false);
 			fCardViews[i]->ClearCard();
+			if (!fCardViews[i]->IsHidden())
+				fCardViews[i]->Hide();
 		}
 	}
 
@@ -501,9 +512,10 @@ RoomView::UpdateAnimations()
 				fAnimations[i].progress = 1.0f;
 				fAnimations[i].active = false;
 
-				// Show the actual card in CardView
-				fCardViews[i]->SetAnimating(false);
+				// Show the CardView with the card
 				fCardViews[i]->SetCard(fAnimations[i].card);
+				if (fCardViews[i]->IsHidden())
+					fCardViews[i]->Show();
 			} else {
 				anyAnimating = true;
 			}

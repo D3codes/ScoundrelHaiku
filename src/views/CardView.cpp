@@ -55,11 +55,6 @@ CardView::ClearCard()
 void
 CardView::Draw(BRect updateRect)
 {
-	// During animation, don't draw anything - RoomView draws the animated card
-	if (fIsAnimating) {
-		return;
-	}
-
 	if (fCard == NULL) {
 		DrawEmptySlot();
 	} else {
