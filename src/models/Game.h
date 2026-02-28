@@ -16,6 +16,7 @@ public:
 	virtual				~GameObserver() {}
 	virtual void		OnGameStateChanged(GameState newState) = 0;
 	virtual void		OnRoomUpdated() = 0;
+	virtual void		OnRoomDealt() = 0;  // Called when new cards are dealt (triggers animation)
 	virtual void		OnPlayerUpdated() = 0;
 	virtual void		OnScoreUpdated() = 0;
 };
@@ -61,6 +62,7 @@ private:
 	void				EndGame();
 	void				NotifyStateChanged();
 	void				NotifyRoomUpdated();
+	void				NotifyRoomDealt();
 	void				NotifyPlayerUpdated();
 	void				NotifyScoreUpdated();
 

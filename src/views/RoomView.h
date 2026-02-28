@@ -7,6 +7,19 @@
 
 class CardView;
 class Room;
+class Card;
+class BBitmap;
+
+// Animation state for a single card
+struct CardAnimation {
+	Card*		card;
+	BPoint		startPos;
+	BPoint		endPos;
+	float		startScale;
+	float		endScale;
+	float		progress;		// 0.0 to 1.0
+	bool		active;
+};
 
 class RoomView : public BView {
 public:
@@ -27,6 +40,9 @@ public:
 private:
 	void				DealNextCard();
 	void				UpdateAnimations();
+	void				DrawAnimatingCard(CardAnimation& anim);
+	float				EaseOutCubic(float t);
+	BPoint				GetCardCenterPosition(int index);
 
 	CardView*			fCardViews[4];
 	Room*				fRoom;
@@ -35,10 +51,10 @@ private:
 	// Animation state
 	bool				fIsDealing;
 	int					fNextCardToDeal;
-	bool				fCardsToAnimate[4];
+	CardAnimation		fAnimations[4];
 	BMessageRunner*		fAnimationRunner;
 	BMessageRunner*		fDealRunner;
-	BPoint				fDeckPosition;
+	BPoint				fDeckPosition;		// In window coordinates
 };
 
 #endif // ROOM_VIEW_H

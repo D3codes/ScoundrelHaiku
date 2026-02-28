@@ -19,6 +19,7 @@ public:
 	// GameObserver interface
 	virtual void		OnGameStateChanged(GameState newState);
 	virtual void		OnRoomUpdated();
+	virtual void		OnRoomDealt();
 	virtual void		OnPlayerUpdated();
 	virtual void		OnScoreUpdated();
 

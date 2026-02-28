@@ -1,6 +1,7 @@
 #include "RoomView.h"
 #include "CardView.h"
 #include "models/Room.h"
+#include "models/Card.h"
 #include "helpers/ResourceLoader.h"
 #include "helpers/SoundPlayer.h"
 #include "utils/Constants.h"
@@ -11,7 +12,9 @@
 #include <Window.h>
 
 static const bigtime_t kAnimationInterval = 16667;  // ~60fps (microseconds)
-static const bigtime_t kDealDelay = 300000;         // 300ms between cards
+static const bigtime_t kDealDelay = 200000;         // 200ms between cards
+static const float kAnimationDuration = 0.3f;       // 300ms per card animation
+static const float kAnimationStep = kAnimationInterval / 1000000.0f / kAnimationDuration;
 
 RoomView::RoomView(BRect frame)
 	:
@@ -25,11 +28,14 @@ RoomView::RoomView(BRect frame)
 	fDealRunner(NULL),
 	fDeckPosition(0, 0)
 {
-	// Use solid color as fallback
-	SetViewColor(kBackgroundColor);
+	SetViewColor(B_TRANSPARENT_COLOR);
 
-	for (int i = 0; i < 4; i++)
-		fCardsToAnimate[i] = false;
+	// Initialize animation states
+	for (int i = 0; i < 4; i++) {
+		fAnimations[i].card = NULL;
+		fAnimations[i].active = false;
+		fAnimations[i].progress = 0.0f;
+	}
 
 	// Calculate card positions for 2x2 grid
 	float cardWidth = kCardWidth;
@@ -88,6 +94,28 @@ RoomView::MessageReceived(BMessage* message)
 }
 
 
+float
+RoomView::EaseOutCubic(float t)
+{
+	float t1 = t - 1.0f;
+	return 1.0f + t1 * t1 * t1;
+}
+
+
+BPoint
+RoomView::GetCardCenterPosition(int index)
+{
+	if (index < 0 || index >= 4)
+		return BPoint(0, 0);
+
+	BRect cardFrame = fCardViews[index]->Frame();
+	return BPoint(
+		cardFrame.left + cardFrame.Width() / 2,
+		cardFrame.top + cardFrame.Height() / 2
+	);
+}
+
+
 void
 RoomView::Draw(BRect updateRect)
 {
@@ -125,6 +153,150 @@ RoomView::Draw(BRect updateRect)
 		SetDrawingMode(B_OP_COPY);
 		DrawBitmap(background, ourSrcRect, bounds);
 	}
+
+	// Draw animating cards on top of background
+	for (int i = 0; i < 4; i++) {
+		if (fAnimations[i].active) {
+			DrawAnimatingCard(fAnimations[i]);
+		}
+	}
+}
+
+
+void
+RoomView::DrawAnimatingCard(CardAnimation& anim)
+{
+	if (anim.card == NULL)
+		return;
+
+	float t = EaseOutCubic(anim.progress);
+
+	// Interpolate position
+	float x = anim.startPos.x + (anim.endPos.x - anim.startPos.x) * t;
+	float y = anim.startPos.y + (anim.endPos.y - anim.startPos.y) * t;
+
+	// Interpolate scale
+	float scale = anim.startScale + (anim.endScale - anim.startScale) * t;
+
+	// Calculate card dimensions
+	float cardWidth = kCardWidth * scale;
+	float cardHeight = kCardHeight * scale;
+
+	// Calculate card rect (centered on position)
+	BRect cardRect(
+		x - cardWidth / 2,
+		y - cardHeight / 2,
+		x + cardWidth / 2,
+		y + cardHeight / 2
+	);
+
+	float radius = 12 * scale;
+
+	// Draw card shadow
+	SetHighColor(0, 0, 0, 100);
+	BRect shadowRect = cardRect;
+	shadowRect.OffsetBy(4 * scale, 4 * scale);
+	FillRoundRect(shadowRect, radius, radius);
+
+	// Draw card background
+	SetHighColor(kCardBackgroundColor);
+	FillRoundRect(cardRect, radius, radius);
+
+	// Draw paper texture
+	BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
+	if (paperBg != NULL) {
+		BRect insetBounds = cardRect.InsetByCopy(2 * scale, 2 * scale);
+		SetDrawingMode(B_OP_ALPHA);
+		DrawBitmap(paperBg, paperBg->Bounds(), insetBounds);
+		SetDrawingMode(B_OP_COPY);
+	}
+
+	// Draw card border
+	SetHighColor(180, 170, 150);
+	StrokeRoundRect(cardRect, radius, radius);
+
+	// Draw card image
+	BBitmap* cardImage = ResourceLoader::Instance()->GetCardImage(
+		anim.card->GetImageName().String());
+
+	float bottomAreaHeight = 45 * scale;
+	float imageAreaHeight = cardRect.Height() - bottomAreaHeight;
+
+	if (cardImage != NULL) {
+		BRect imageRect = cardImage->Bounds();
+		float padding = 10 * scale;
+		float availWidth = cardRect.Width() - padding * 2;
+		float availHeight = imageAreaHeight - padding * 2;
+
+		float imgScale = availWidth / imageRect.Width();
+		if (availHeight / imageRect.Height() < imgScale)
+			imgScale = availHeight / imageRect.Height();
+
+		float imageWidth = imageRect.Width() * imgScale;
+		float imageHeight = imageRect.Height() * imgScale;
+		float imageX = cardRect.left + (cardRect.Width() - imageWidth) / 2;
+		float imageY = cardRect.top + padding;
+
+		BRect destRect(imageX, imageY, imageX + imageWidth, imageY + imageHeight);
+
+		float imageRadius = 8 * scale;
+		SetHighColor(kCardBackgroundColor);
+		FillRoundRect(destRect, imageRadius, imageRadius);
+
+		BRect insetDestRect = destRect.InsetByCopy(2 * scale, 2 * scale);
+		SetDrawingMode(B_OP_ALPHA);
+		DrawBitmap(cardImage, imageRect, insetDestRect);
+		SetDrawingMode(B_OP_COPY);
+
+		SetHighColor(160, 150, 130);
+		StrokeRoundRect(destRect, imageRadius, imageRadius);
+	} else {
+		// Fallback: draw icon
+		BBitmap* icon = ResourceLoader::Instance()->GetGlyph(
+			anim.card->GetIconName().String());
+		if (icon != NULL) {
+			BRect iconRect = icon->Bounds();
+			float iconX = cardRect.left + (cardRect.Width() - iconRect.Width() * scale) / 2;
+			float iconY = cardRect.top + (imageAreaHeight - iconRect.Height() * scale) / 2;
+			BRect destIcon(iconX, iconY,
+				iconX + iconRect.Width() * scale,
+				iconY + iconRect.Height() * scale);
+			SetDrawingMode(B_OP_ALPHA);
+			DrawBitmap(icon, iconRect, destIcon);
+			SetDrawingMode(B_OP_COPY);
+		}
+	}
+
+	// Draw suit icon and strength at bottom
+	float iconSize = 24 * scale;
+	BBitmap* suitIcon = ResourceLoader::Instance()->GetGlyph(
+		anim.card->GetIconName().String());
+
+	BFont font;
+	font.SetSize(24 * scale);
+	font.SetFace(B_BOLD_FACE);
+	SetFont(&font);
+
+	BString strengthStr;
+	strengthStr.SetToFormat("%d", anim.card->Strength());
+	float textWidth = StringWidth(strengthStr.String());
+
+	float spacing = 8 * scale;
+	float totalWidth = iconSize + spacing + textWidth;
+	float startX = cardRect.left + (cardRect.Width() - totalWidth) / 2;
+	float bottomY = cardRect.bottom - 12 * scale;
+
+	if (suitIcon != NULL) {
+		SetDrawingMode(B_OP_ALPHA);
+		BRect srcIcon = suitIcon->Bounds();
+		BRect destIcon(startX, bottomY - iconSize, startX + iconSize, bottomY);
+		DrawBitmap(suitIcon, srcIcon, destIcon);
+		SetDrawingMode(B_OP_COPY);
+	}
+
+	SetHighColor(0, 0, 0);
+	DrawString(strengthStr.String(),
+		BPoint(startX + iconSize + spacing, bottomY - 3 * scale));
 }
 
 
@@ -144,9 +316,6 @@ void
 RoomView::SetDeckPosition(BPoint deckPos)
 {
 	fDeckPosition = deckPos;
-	for (int i = 0; i < 4; i++) {
-		fCardViews[i]->SetDeckPosition(deckPos);
-	}
 }
 
 
@@ -195,30 +364,48 @@ RoomView::RefreshWithAnimation()
 	delete fDealRunner;
 	fDealRunner = NULL;
 
-	// Figure out which cards need to be dealt (currently NULL in view but exist in room)
+	// Calculate deck position in our coordinate system
+	BPoint deckPosInRoom = fDeckPosition;
+	if (Parent() != NULL) {
+		// fDeckPosition is relative to GameBoardView (our parent)
+		// Convert to RoomView coordinates
+		BPoint ourPos = Frame().LeftTop();
+		deckPosInRoom.x -= ourPos.x;
+		deckPosInRoom.y -= ourPos.y;
+	}
+
+	// Set up animations for all cards that exist in the room
 	fNextCardToDeal = -1;
 	for (int i = 0; i < 4; i++) {
 		Card* roomCard = fRoom->GetCard(i);
-		// If room has a card but view doesn't show it yet
-		fCardsToAnimate[i] = (roomCard != NULL);
+		fAnimations[i].card = roomCard;
+		fAnimations[i].active = false;
+		fAnimations[i].progress = 0.0f;
 
-		// Clear all cards first to show empty slots
-		fCardViews[i]->ClearCard();
-	}
+		if (roomCard != NULL) {
+			// Set up animation parameters
+			fAnimations[i].startPos = deckPosInRoom;
+			fAnimations[i].endPos = GetCardCenterPosition(i);
+			fAnimations[i].startScale = 0.3f;  // Start small (deck size)
+			fAnimations[i].endScale = 1.0f;    // End full size
 
-	// Find first card to deal
-	for (int i = 0; i < 4; i++) {
-		if (fCardsToAnimate[i]) {
-			fNextCardToDeal = i;
-			break;
+			// Clear the card view - we'll draw during animation
+			fCardViews[i]->SetAnimating(true);
+			fCardViews[i]->ClearCard();
+
+			// Find first card to deal
+			if (fNextCardToDeal < 0)
+				fNextCardToDeal = i;
+		} else {
+			fCardViews[i]->SetAnimating(false);
+			fCardViews[i]->ClearCard();
 		}
 	}
 
 	if (fNextCardToDeal >= 0) {
 		fIsDealing = true;
-		// Start dealing after a short delay
-		BMessage dealMsg(kMsgDealNextCard);
-		fDealRunner = new BMessageRunner(BMessenger(this), &dealMsg, kDealDelay, 1);
+		// Start dealing immediately
+		DealNextCard();
 	}
 
 	Invalidate();
@@ -234,7 +421,7 @@ RoomView::DealNextCard()
 	}
 
 	// Find the next card to deal
-	while (fNextCardToDeal < 4 && !fCardsToAnimate[fNextCardToDeal]) {
+	while (fNextCardToDeal < 4 && fAnimations[fNextCardToDeal].card == NULL) {
 		fNextCardToDeal++;
 	}
 
@@ -243,37 +430,26 @@ RoomView::DealNextCard()
 		return;
 	}
 
-	Card* card = fRoom->GetCard(fNextCardToDeal);
-	if (card != NULL) {
-		// Play deal sound
-		SoundPlayer::Instance()->PlaySound(SFX_DEAL_CARD);
+	// Play deal sound
+	SoundPlayer::Instance()->PlaySound(SFX_DEAL_CARD);
 
-		// Calculate start position (deck position in our coordinate system)
-		BPoint startPos = fDeckPosition;
-		// Convert from window coordinates to our coordinates
-		if (Parent() != NULL) {
-			startPos.x -= Frame().left;
-			startPos.y -= Frame().top;
-		}
+	// Start this card's animation
+	fAnimations[fNextCardToDeal].active = true;
+	fAnimations[fNextCardToDeal].progress = 0.0f;
 
-		// Start the card animation
-		fCardViews[fNextCardToDeal]->SetCardWithAnimation(card, startPos, 0.2f);
-
-		// Start animation timer if not already running
-		if (fAnimationRunner == NULL) {
-			BMessage animMsg(kMsgAnimationTick);
-			fAnimationRunner = new BMessageRunner(BMessenger(this), &animMsg,
-				kAnimationInterval, -1); // -1 = infinite
-		}
+	// Start animation timer if not already running
+	if (fAnimationRunner == NULL) {
+		BMessage animMsg(kMsgAnimationTick);
+		fAnimationRunner = new BMessageRunner(BMessenger(this), &animMsg,
+			kAnimationInterval, -1); // -1 = infinite
 	}
 
-	fCardsToAnimate[fNextCardToDeal] = false;
 	fNextCardToDeal++;
 
 	// Schedule next card deal
 	bool moreCards = false;
 	for (int i = fNextCardToDeal; i < 4; i++) {
-		if (fCardsToAnimate[i]) {
+		if (fAnimations[i].card != NULL) {
 			moreCards = true;
 			break;
 		}
@@ -284,6 +460,8 @@ RoomView::DealNextCard()
 		BMessage dealMsg(kMsgDealNextCard);
 		fDealRunner = new BMessageRunner(BMessenger(this), &dealMsg, kDealDelay, 1);
 	}
+
+	Invalidate();
 }
 
 
@@ -293,11 +471,24 @@ RoomView::UpdateAnimations()
 	bool anyAnimating = false;
 
 	for (int i = 0; i < 4; i++) {
-		if (fCardViews[i]->IsAnimating()) {
-			fCardViews[i]->UpdateAnimation();
-			anyAnimating = true;
+		if (fAnimations[i].active) {
+			fAnimations[i].progress += kAnimationStep;
+
+			if (fAnimations[i].progress >= 1.0f) {
+				// Animation complete
+				fAnimations[i].progress = 1.0f;
+				fAnimations[i].active = false;
+
+				// Show the actual card in CardView
+				fCardViews[i]->SetAnimating(false);
+				fCardViews[i]->SetCard(fAnimations[i].card);
+			} else {
+				anyAnimating = true;
+			}
 		}
 	}
+
+	Invalidate();
 
 	// Stop animation timer if no cards are animating
 	if (!anyAnimating) {
@@ -306,8 +497,8 @@ RoomView::UpdateAnimations()
 
 		// Check if we're done dealing
 		bool moreToDeal = false;
-		for (int i = 0; i < 4; i++) {
-			if (fCardsToAnimate[i]) {
+		for (int i = fNextCardToDeal; i < 4; i++) {
+			if (fAnimations[i].card != NULL && !fAnimations[i].active) {
 				moreToDeal = true;
 				break;
 			}

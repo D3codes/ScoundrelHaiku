@@ -73,7 +73,7 @@ Game::NewGame()
 
 	fState = kGameStatePlaying;
 	NotifyStateChanged();
-	NotifyRoomUpdated();
+	NotifyRoomDealt();  // New game deals cards - trigger animation
 	NotifyPlayerUpdated();
 	NotifyScoreUpdated();
 }
@@ -90,7 +90,7 @@ Game::NextDungeon()
 
 	fState = kGameStatePlaying;
 	NotifyStateChanged();
-	NotifyRoomUpdated();
+	NotifyRoomDealt();  // New dungeon deals cards - trigger animation
 	NotifyScoreUpdated();
 }
 
@@ -209,7 +209,7 @@ Game::Flee()
 	// Deal new room
 	fRoom.NextRoom(&fDeck, true); // Can't flee next room
 
-	NotifyRoomUpdated();
+	NotifyRoomDealt();  // Flee deals new room - trigger animation
 }
 
 
@@ -217,6 +217,8 @@ void
 Game::EndAction(int cardIndex)
 {
 	fRoom.RemoveCard(cardIndex);
+
+	bool dealtNewRoom = false;
 
 	// Check if room is cleared and deck is empty
 	if (fRoom.CardCount() == 1 && fDeck.IsEmpty()) {
@@ -226,6 +228,7 @@ Game::EndAction(int cardIndex)
 		// One card left - deal new room
 		bool fledLastRoom = fRoom.PlayerFled();
 		fRoom.NextRoom(&fDeck, fledLastRoom);
+		dealtNewRoom = true;
 	}
 
 	// Check if dungeon is complete (room empty and deck empty)
@@ -238,7 +241,11 @@ Game::EndAction(int cardIndex)
 	if (fRoom.CardCount() > 0)
 		fBonusPoints = 0;
 
-	NotifyRoomUpdated();
+	// Only animate if new cards were dealt
+	if (dealtNewRoom)
+		NotifyRoomDealt();
+	else
+		NotifyRoomUpdated();
 }
 
 
@@ -282,6 +289,14 @@ Game::NotifyRoomUpdated()
 {
 	if (fObserver != NULL)
 		fObserver->OnRoomUpdated();
+}
+
+
+void
+Game::NotifyRoomDealt()
+{
+	if (fObserver != NULL)
+		fObserver->OnRoomDealt();
 }
 
 

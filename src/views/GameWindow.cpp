@@ -266,6 +266,16 @@ GameWindow::OnGameStateChanged(GameState newState)
 void
 GameWindow::OnRoomUpdated()
 {
+	// Called when a card is removed (no animation needed)
+	if (fGameBoardView != NULL)
+		fGameBoardView->Refresh();
+}
+
+
+void
+GameWindow::OnRoomDealt()
+{
+	// Called when new cards are dealt (trigger animation)
 	if (fGameBoardView != NULL)
 		fGameBoardView->RefreshWithAnimation();
 }
