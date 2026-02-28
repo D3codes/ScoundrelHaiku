@@ -397,30 +397,38 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 
 	float buttonWidth = 120;
 	float buttonHeight = 40;
-	float buttonMargin = 10;
+	float buttonAreaHeight = 55;
 
-	// Scroll view takes full window height
-	float scrollWidth = bounds.Width() - B_V_SCROLL_BAR_WIDTH - 1;
+	// Scroll view leaves room for button at bottom
+	float scrollWidth = bounds.Width() - B_V_SCROLL_BAR_WIDTH;
+	float scrollHeight = bounds.Height() - buttonAreaHeight;
 
-	// Content height includes all text plus padding at bottom for button
-	float contentHeight = 1250;
-	BRect contentRect(0, 0, scrollWidth, contentHeight);
+	// Content height for all text content
+	float contentHeight = 1050;
+	BRect contentRect(0, 0, scrollWidth - 1, contentHeight);
 
 	HowToPlayContentView* contentView = new HowToPlayContentView(contentRect);
 
 	BScrollView* scrollView = new BScrollView("scrollView", contentView,
-		B_FOLLOW_ALL, 0, false, true, B_NO_BORDER);
-	scrollView->ResizeTo(bounds.Width(), bounds.Height());
+		B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP, 0, false, true, B_NO_BORDER);
+	scrollView->ResizeTo(bounds.Width(), scrollHeight);
 	AddChild(scrollView);
 
-	// Add close button directly to window, floating on top
+	// Create a background view for button area that matches parchment
+	BView* buttonBgView = new BView(
+		BRect(0, scrollHeight, bounds.Width(), bounds.Height()),
+		"buttonBg", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM, 0);
+	buttonBgView->SetViewColor(222, 210, 190);
+	AddChild(buttonBgView);
+
+	// Add close button to the button background view
 	float buttonX = (bounds.Width() - buttonWidth) / 2;
-	float buttonY = bounds.Height() - buttonHeight - buttonMargin;
+	float buttonY = (buttonAreaHeight - buttonHeight) / 2;
 
 	PlankButtonHowTo* closeBtn = new PlankButtonHowTo(
 		BRect(buttonX, buttonY, buttonX + buttonWidth, buttonY + buttonHeight),
 		"Close", new BMessage(B_QUIT_REQUESTED));
-	AddChild(closeBtn);
+	buttonBgView->AddChild(closeBtn);
 }
 
 
