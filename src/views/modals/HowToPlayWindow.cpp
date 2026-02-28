@@ -375,15 +375,6 @@ private:
 };
 
 
-class ButtonAreaView : public BView {
-public:
-	ButtonAreaView(BRect frame)
-		: BView(frame, "buttonArea", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM, 0)
-	{
-		// Match the content view parchment color
-		SetViewColor(222, 210, 190);
-	}
-};
 
 
 HowToPlayWindow::HowToPlayWindow(BWindow* parent)
@@ -404,39 +395,32 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 
 	BRect bounds = Bounds();
 
-	// Button area at bottom
-	float buttonAreaHeight = 55;
 	float buttonWidth = 120;
 	float buttonHeight = 40;
+	float buttonMargin = 10;
 
-	// Create scroll view area (everything except button area)
+	// Scroll view takes full window height
 	float scrollWidth = bounds.Width() - B_V_SCROLL_BAR_WIDTH - 1;
-	float scrollHeight = bounds.Height() - buttonAreaHeight;
 
-	// Content with extra padding so user can scroll past button area
-	float contentHeight = 1150;
+	// Content height includes all text plus padding at bottom for button
+	float contentHeight = 1250;
 	BRect contentRect(0, 0, scrollWidth, contentHeight);
 
 	HowToPlayContentView* contentView = new HowToPlayContentView(contentRect);
 
 	BScrollView* scrollView = new BScrollView("scrollView", contentView,
-		B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP, 0, false, true, B_NO_BORDER);
-	scrollView->ResizeTo(bounds.Width(), scrollHeight);
+		B_FOLLOW_ALL, 0, false, true, B_NO_BORDER);
+	scrollView->ResizeTo(bounds.Width(), bounds.Height());
 	AddChild(scrollView);
 
-	// Create button area view that draws paper background
-	BRect buttonAreaRect(0, scrollHeight, bounds.Width(), bounds.Height());
-	ButtonAreaView* buttonArea = new ButtonAreaView(buttonAreaRect);
-
-	float buttonX = (buttonAreaRect.Width() - buttonWidth) / 2;
-	float buttonY = (buttonAreaHeight - buttonHeight) / 2;
+	// Add close button directly to window, floating on top
+	float buttonX = (bounds.Width() - buttonWidth) / 2;
+	float buttonY = bounds.Height() - buttonHeight - buttonMargin;
 
 	PlankButtonHowTo* closeBtn = new PlankButtonHowTo(
 		BRect(buttonX, buttonY, buttonX + buttonWidth, buttonY + buttonHeight),
 		"Close", new BMessage(B_QUIT_REQUESTED));
-	buttonArea->AddChild(closeBtn);
-
-	AddChild(buttonArea);
+	AddChild(closeBtn);
 }
 
 

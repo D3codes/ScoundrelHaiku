@@ -173,16 +173,6 @@ MainMenuView::Draw(BRect updateRect)
 	// Draw title
 	SetHighColor(kTextColor);
 	DrawString(title, BPoint(titleX, titleY));
-
-	// Draw subtitle
-	BFont subtitleFont;
-	subtitleFont.SetSize(16);
-	SetFont(&subtitleFont);
-	SetHighColor(150, 150, 160);
-
-	const char* subtitle = "A Dungeon Card Solitaire";
-	float subtitleWidth = StringWidth(subtitle);
-	DrawString(subtitle, BPoint((bounds.Width() - subtitleWidth) / 2, 160));
 }
 
 
