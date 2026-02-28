@@ -17,6 +17,7 @@ public:
 	virtual void		OnGameStateChanged(GameState newState) = 0;
 	virtual void		OnRoomUpdated() = 0;
 	virtual void		OnRoomDealt() = 0;  // Called when new cards are dealt (triggers animation)
+	virtual void		OnFleeStarted() = 0;  // Called before flee, to animate cards back to deck
 	virtual void		OnPlayerUpdated() = 0;
 	virtual void		OnScoreUpdated() = 0;
 };
@@ -63,6 +64,7 @@ private:
 	void				NotifyStateChanged();
 	void				NotifyRoomUpdated();
 	void				NotifyRoomDealt();
+	void				NotifyFleeStarted();
 	void				NotifyPlayerUpdated();
 	void				NotifyScoreUpdated();
 

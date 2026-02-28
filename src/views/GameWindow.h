@@ -20,6 +20,7 @@ public:
 	virtual void		OnGameStateChanged(GameState newState);
 	virtual void		OnRoomUpdated();
 	virtual void		OnRoomDealt();
+	virtual void		OnFleeStarted();
 	virtual void		OnPlayerUpdated();
 	virtual void		OnScoreUpdated();
 

@@ -202,6 +202,9 @@ Game::Flee()
 	if (!fRoom.CanFlee())
 		return;
 
+	// Notify UI to start flee animation (before room changes)
+	NotifyFleeStarted();
+
 	SoundPlayer::Instance()->PlaySound(SFX_SHUFFLE);
 
 	fRoom.Flee(&fDeck);
@@ -297,6 +300,14 @@ Game::NotifyRoomDealt()
 {
 	if (fObserver != NULL)
 		fObserver->OnRoomDealt();
+}
+
+
+void
+Game::NotifyFleeStarted()
+{
+	if (fObserver != NULL)
+		fObserver->OnFleeStarted();
 }
 
 

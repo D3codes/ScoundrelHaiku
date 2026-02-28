@@ -180,3 +180,11 @@ GameBoardView::RefreshWithAnimation()
 
 	Invalidate();
 }
+
+
+void
+GameBoardView::PrepareFleeAnimation()
+{
+	if (fRoomView != NULL)
+		fRoomView->PrepareFleeAnimation();
+}

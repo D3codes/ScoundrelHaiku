@@ -23,6 +23,8 @@ RoomView::RoomView(BRect frame)
 	fRoom(NULL),
 	fBackgroundIndex(1),
 	fIsDealing(false),
+	fIsFleeing(false),
+	fFleeAnimationPending(false),
 	fNextCardToDeal(0),
 	fAnimationRunner(NULL),
 	fDealRunner(NULL),
@@ -35,6 +37,10 @@ RoomView::RoomView(BRect frame)
 		fAnimations[i].card = NULL;
 		fAnimations[i].active = false;
 		fAnimations[i].progress = 0.0f;
+
+		fFleeAnimations[i].card = NULL;
+		fFleeAnimations[i].active = false;
+		fFleeAnimations[i].progress = 0.0f;
 	}
 
 	// Calculate card positions for 2x2 grid
@@ -154,7 +160,14 @@ RoomView::Draw(BRect updateRect)
 		DrawBitmap(background, ourSrcRect, bounds);
 	}
 
-	// Draw animating cards on top of background
+	// Draw flee animations (cards going back to deck)
+	for (int i = 0; i < 4; i++) {
+		if (fFleeAnimations[i].active) {
+			DrawAnimatingCard(fFleeAnimations[i]);
+		}
+	}
+
+	// Draw deal animations (cards coming from deck)
 	for (int i = 0; i < 4; i++) {
 		if (fAnimations[i].active) {
 			DrawAnimatingCard(fAnimations[i]);
@@ -331,7 +344,7 @@ void
 RoomView::Refresh()
 {
 	// Don't override card views if animation is in progress
-	if (fIsDealing)
+	if (fIsDealing || fIsFleeing)
 		return;
 
 	if (fRoom == NULL) {
@@ -362,6 +375,41 @@ RoomView::Refresh()
 
 
 void
+RoomView::PrepareFleeAnimation()
+{
+	// Capture current cards for flee animation
+	// Calculate deck position in our coordinate system
+	BPoint deckPosInRoom = fDeckPosition;
+	if (Parent() != NULL) {
+		BPoint ourPos = Frame().LeftTop();
+		deckPosInRoom.x -= ourPos.x;
+		deckPosInRoom.y -= ourPos.y;
+	}
+
+	// Set up flee animations for all visible cards
+	for (int i = 0; i < 4; i++) {
+		Card* viewCard = fCardViews[i]->GetCard();
+
+		fFleeAnimations[i].active = false;
+		fFleeAnimations[i].progress = 0.0f;
+
+		if (viewCard != NULL) {
+			// Card exists - set up animation to move back to deck
+			fFleeAnimations[i].card = viewCard;
+			fFleeAnimations[i].startPos = GetCardCenterPosition(i);
+			fFleeAnimations[i].endPos = deckPosInRoom;
+			fFleeAnimations[i].startScale = 1.0f;  // Start full size
+			fFleeAnimations[i].endScale = 0.3f;    // End small (deck size)
+		} else {
+			fFleeAnimations[i].card = NULL;
+		}
+	}
+
+	fFleeAnimationPending = true;
+}
+
+
+void
 RoomView::RefreshWithAnimation()
 {
 	if (fRoom == NULL) {
@@ -378,55 +426,96 @@ RoomView::RefreshWithAnimation()
 	// Calculate deck position in our coordinate system
 	BPoint deckPosInRoom = fDeckPosition;
 	if (Parent() != NULL) {
-		// fDeckPosition is relative to GameBoardView (our parent)
-		// Convert to RoomView coordinates
 		BPoint ourPos = Frame().LeftTop();
 		deckPosInRoom.x -= ourPos.x;
 		deckPosInRoom.y -= ourPos.y;
 	}
 
-	// Figure out which cards need animation
-	// Compare CardView's current card with Room's card to identify:
-	// - New cards (need animation): room has card, view has different/no card
-	// - Carried over cards (no animation): room and view have same card
-	// - Empty slots: room has no card
+	// If flee animation is pending, start it first
+	if (fFleeAnimationPending) {
+		fFleeAnimationPending = false;
+		fIsFleeing = true;
+
+		// Hide all CardViews and start flee animations
+		bool anyFleeing = false;
+		for (int i = 0; i < 4; i++) {
+			if (fFleeAnimations[i].card != NULL) {
+				fFleeAnimations[i].active = true;
+				fFleeAnimations[i].progress = 0.0f;
+
+				// Hide CardView - we'll draw the animated card
+				fCardViews[i]->ClearCard();
+				if (!fCardViews[i]->IsHidden())
+					fCardViews[i]->Hide();
+
+				anyFleeing = true;
+			}
+		}
+
+		// Set up deal animations for later (after flee completes)
+		fNextCardToDeal = -1;
+		for (int i = 0; i < 4; i++) {
+			Card* roomCard = fRoom->GetCard(i);
+
+			fAnimations[i].active = false;
+			fAnimations[i].progress = 0.0f;
+
+			if (roomCard != NULL) {
+				// All cards are new after a flee
+				fAnimations[i].card = roomCard;
+				fAnimations[i].startPos = deckPosInRoom;
+				fAnimations[i].endPos = GetCardCenterPosition(i);
+				fAnimations[i].startScale = 0.3f;
+				fAnimations[i].endScale = 1.0f;
+
+				if (fNextCardToDeal < 0)
+					fNextCardToDeal = i;
+			} else {
+				fAnimations[i].card = NULL;
+			}
+		}
+
+		if (anyFleeing) {
+			// Start animation timer
+			BMessage animMsg(kMsgAnimationTick);
+			fAnimationRunner = new BMessageRunner(BMessenger(this), &animMsg,
+				kAnimationInterval, -1);
+		}
+
+		Invalidate();
+		return;
+	}
+
+	// Normal deal animation (no flee)
 	fNextCardToDeal = -1;
 	for (int i = 0; i < 4; i++) {
 		Card* roomCard = fRoom->GetCard(i);
 		Card* viewCard = fCardViews[i]->GetCard();
 
-		// Check if this is the same card (carried over from previous room)
 		bool isCarriedOver = (roomCard != NULL && roomCard == viewCard);
-		// Check if this is a new card that needs animation
 		bool isNewCard = (roomCard != NULL && roomCard != viewCard);
 
 		fAnimations[i].active = false;
 		fAnimations[i].progress = 0.0f;
 
 		if (isCarriedOver) {
-			// Card carried over from previous room - don't animate, leave as is
 			fAnimations[i].card = NULL;
-			// Make sure CardView is visible
 			if (fCardViews[i]->IsHidden())
 				fCardViews[i]->Show();
 		} else if (isNewCard) {
-			// New card - set up animation
 			fAnimations[i].card = roomCard;
 			fAnimations[i].startPos = deckPosInRoom;
 			fAnimations[i].endPos = GetCardCenterPosition(i);
-			fAnimations[i].startScale = 0.3f;  // Start small (deck size)
-			fAnimations[i].endScale = 1.0f;    // End full size
+			fAnimations[i].startScale = 0.3f;
+			fAnimations[i].endScale = 1.0f;
 
-			// Hide the CardView during animation - RoomView will draw the animated card
 			fCardViews[i]->ClearCard();
 			if (!fCardViews[i]->IsHidden())
 				fCardViews[i]->Hide();
 
-			// Find first card to deal
 			if (fNextCardToDeal < 0)
 				fNextCardToDeal = i;
 		} else {
-			// Empty slot or stale card - clear it and hide
 			fAnimations[i].card = NULL;
 			fCardViews[i]->ClearCard();
 			if (!fCardViews[i]->IsHidden())
@@ -436,11 +525,25 @@ RoomView::RefreshWithAnimation()
 
 	if (fNextCardToDeal >= 0) {
 		fIsDealing = true;
-		// Start dealing immediately
 		DealNextCard();
 	}
 
 	Invalidate();
+}
+
+
+void
+RoomView::StartDealAnimation()
+{
+	// Called after flee animation completes to start dealing new cards
+	fIsFleeing = false;
+	fIsDealing = true;
+
+	if (fNextCardToDeal >= 0) {
+		DealNextCard();
+	} else {
+		fIsDealing = false;
+	}
 }
 
 
@@ -452,7 +555,7 @@ RoomView::DealNextCard()
 		return;
 	}
 
-	// Find the next card to deal (skip NULL entries - carried over or empty)
+	// Find the next card to deal (skip NULL entries)
 	while (fNextCardToDeal < 4 && fAnimations[fNextCardToDeal].card == NULL) {
 		fNextCardToDeal++;
 	}
@@ -473,10 +576,9 @@ RoomView::DealNextCard()
 	if (fAnimationRunner == NULL) {
 		BMessage animMsg(kMsgAnimationTick);
 		fAnimationRunner = new BMessageRunner(BMessenger(this), &animMsg,
-			kAnimationInterval, -1); // -1 = infinite
+			kAnimationInterval, -1);
 	}
 
-	int currentCard = fNextCardToDeal;
 	fNextCardToDeal++;
 
 	// Schedule next card deal if there are more new cards to animate
@@ -503,12 +605,36 @@ RoomView::UpdateAnimations()
 {
 	bool anyAnimating = false;
 
+	// Update flee animations (all cards animate simultaneously)
+	if (fIsFleeing) {
+		bool anyFleeing = false;
+		for (int i = 0; i < 4; i++) {
+			if (fFleeAnimations[i].active) {
+				fFleeAnimations[i].progress += kAnimationStep;
+
+				if (fFleeAnimations[i].progress >= 1.0f) {
+					fFleeAnimations[i].progress = 1.0f;
+					fFleeAnimations[i].active = false;
+				} else {
+					anyFleeing = true;
+				}
+			}
+		}
+
+		if (!anyFleeing) {
+			// Flee animation complete - start deal animation
+			StartDealAnimation();
+		}
+
+		anyAnimating = anyFleeing;
+	}
+
+	// Update deal animations
 	for (int i = 0; i < 4; i++) {
 		if (fAnimations[i].active) {
 			fAnimations[i].progress += kAnimationStep;
 
 			if (fAnimations[i].progress >= 1.0f) {
-				// Animation complete
 				fAnimations[i].progress = 1.0f;
 				fAnimations[i].active = false;
 
@@ -525,7 +651,7 @@ RoomView::UpdateAnimations()
 	Invalidate();
 
 	// Stop animation timer if no cards are animating
-	if (!anyAnimating) {
+	if (!anyAnimating && !fIsFleeing) {
 		delete fAnimationRunner;
 		fAnimationRunner = NULL;
 

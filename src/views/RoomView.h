@@ -35,11 +35,14 @@ public:
 	void				SetDeckPosition(BPoint deckPos);
 	void				Refresh();
 	void				RefreshWithAnimation();
+	void				PrepareFleeAnimation();
 	bool				IsDealing() const { return fIsDealing; }
+	bool				IsFleeing() const { return fIsFleeing; }
 
 private:
 	void				DealNextCard();
 	void				UpdateAnimations();
+	void				StartDealAnimation();
 	void				DrawAnimatingCard(CardAnimation& anim);
 	float				EaseOutCubic(float t);
 	BPoint				GetCardCenterPosition(int index);
@@ -50,8 +53,11 @@ private:
 
 	// Animation state
 	bool				fIsDealing;
+	bool				fIsFleeing;
+	bool				fFleeAnimationPending;
 	int					fNextCardToDeal;
 	CardAnimation		fAnimations[4];
+	CardAnimation		fFleeAnimations[4];	// Cards fleeing back to deck
 	BMessageRunner*		fAnimationRunner;
 	BMessageRunner*		fDealRunner;
 	BPoint				fDeckPosition;		// In window coordinates

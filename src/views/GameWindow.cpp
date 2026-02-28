@@ -282,6 +282,15 @@ GameWindow::OnRoomDealt()
 
 
 void
+GameWindow::OnFleeStarted()
+{
+	// Called before flee - capture current cards for flee animation
+	if (fGameBoardView != NULL)
+		fGameBoardView->PrepareFleeAnimation();
+}
+
+
+void
 GameWindow::OnPlayerUpdated()
 {
 	if (fGameBoardView != NULL)

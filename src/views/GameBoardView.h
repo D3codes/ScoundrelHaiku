@@ -20,6 +20,7 @@ public:
 	void				SetGame(Game* game);
 	void				Refresh();
 	void				RefreshWithAnimation();
+	void				PrepareFleeAnimation();
 	void				RandomizeBackground();
 
 private:
