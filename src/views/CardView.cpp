@@ -75,24 +75,30 @@ void
 CardView::DrawCard()
 {
 	BRect bounds = Bounds();
+	float radius = 12;
 
 	// Draw shadow first
 	SetHighColor(0, 0, 0, 100);
 	BRect shadowRect = bounds;
 	shadowRect.OffsetBy(4, 4);
-	FillRoundRect(shadowRect, 12, 12);
+	FillRoundRect(shadowRect, radius, radius);
 
 	// Always draw solid card background first
 	SetHighColor(kCardBackgroundColor);
-	FillRoundRect(bounds, 12, 12);
+	FillRoundRect(bounds, radius, radius);
 
-	// Draw paper texture on top if available
+	// Draw paper texture on top if available (inset to show rounded corners)
 	BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
 	if (paperBg != NULL) {
+		BRect insetBounds = bounds.InsetByCopy(2, 2);
 		SetDrawingMode(B_OP_ALPHA);
-		DrawBitmap(paperBg, paperBg->Bounds(), bounds);
+		DrawBitmap(paperBg, paperBg->Bounds(), insetBounds);
 		SetDrawingMode(B_OP_COPY);
 	}
+
+	// Draw rounded border
+	SetHighColor(180, 170, 150);
+	StrokeRoundRect(bounds, radius, radius);
 
 	// Try to load card image
 	BBitmap* cardImage = ResourceLoader::Instance()->GetCardImage(
@@ -102,7 +108,7 @@ CardView::DrawCard()
 	float imageAreaHeight = bounds.Height() - bottomAreaHeight;
 
 	if (cardImage != NULL) {
-		// Draw card image in upper portion
+		// Draw card image in upper portion with rounded corners
 		BRect imageRect = cardImage->Bounds();
 		float padding = 10;
 		float availWidth = bounds.Width() - padding * 2;
@@ -118,9 +124,21 @@ CardView::DrawCard()
 		float imageY = padding;
 
 		BRect destRect(imageX, imageY, imageX + imageWidth, imageY + imageHeight);
+
+		// Draw rounded background for image area
+		float imageRadius = 8;
+		SetHighColor(kCardBackgroundColor);
+		FillRoundRect(destRect, imageRadius, imageRadius);
+
+		// Draw image inset to show rounded corners
+		BRect insetDestRect = destRect.InsetByCopy(2, 2);
 		SetDrawingMode(B_OP_ALPHA);
-		DrawBitmap(cardImage, imageRect, destRect);
+		DrawBitmap(cardImage, imageRect, insetDestRect);
 		SetDrawingMode(B_OP_COPY);
+
+		// Draw rounded border around image
+		SetHighColor(160, 150, 130);
+		StrokeRoundRect(destRect, imageRadius, imageRadius);
 	} else {
 		// Draw placeholder icon
 		BBitmap* icon = ResourceLoader::Instance()->GetGlyph(

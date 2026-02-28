@@ -352,7 +352,7 @@ public:
 		FillRoundRect(bounds, radius, radius);
 
 		// Draw plank background inset to show rounded corners
-		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("plank1");
+		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("woodButton");
 		if (plankBg != NULL) {
 			BRect insetBounds = bounds.InsetByCopy(2, 2);
 			SetDrawingMode(B_OP_ALPHA);
@@ -385,6 +385,31 @@ private:
 };
 
 
+class ButtonAreaView : public BView {
+public:
+	ButtonAreaView(BRect frame)
+		: BView(frame, "buttonArea", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM, B_WILL_DRAW)
+	{
+		SetViewColor(B_TRANSPARENT_COLOR);
+	}
+
+	virtual void Draw(BRect updateRect) {
+		BRect bounds = Bounds();
+
+		// Draw paper background to match content
+		BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
+		if (paperBg != NULL) {
+			SetDrawingMode(B_OP_ALPHA);
+			DrawBitmap(paperBg, paperBg->Bounds(), bounds);
+			SetDrawingMode(B_OP_COPY);
+		} else {
+			SetHighColor(kCardBackgroundColor);
+			FillRect(bounds);
+		}
+	}
+};
+
+
 HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 	:
 	BWindow(BRect(0, 0, 400, 550), "How to Play",
@@ -403,38 +428,39 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 
 	BRect bounds = Bounds();
 
-	// Create container view with paper background for bottom area
-	BView* containerView = new BView(bounds, "container", B_FOLLOW_ALL, B_WILL_DRAW);
-	containerView->SetViewColor(kCardBackgroundColor);
-
-	// Create scrollable content area (leave room for button at bottom)
+	// Button area at bottom
 	float buttonAreaHeight = 55;
+	float buttonWidth = 120;
+	float buttonHeight = 40;
+
+	// Create scroll view area (everything except button area)
 	float scrollWidth = bounds.Width() - B_V_SCROLL_BAR_WIDTH - 1;
 	float scrollHeight = bounds.Height() - buttonAreaHeight;
-	BRect scrollRect(0, 0, scrollWidth, scrollHeight);
-	// Content is 1200 pixels tall + extra padding at bottom so user can scroll
-	// past the close button to see all content
-	BRect contentRect(0, 0, scrollWidth, 1280);
+
+	// Content with extra padding so user can scroll past button area
+	float contentHeight = 1150;
+	BRect contentRect(0, 0, scrollWidth, contentHeight);
 
 	HowToPlayContentView* contentView = new HowToPlayContentView(contentRect);
 
 	BScrollView* scrollView = new BScrollView("scrollView", contentView,
 		B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP, 0, false, true, B_NO_BORDER);
 	scrollView->ResizeTo(bounds.Width(), scrollHeight);
-	containerView->AddChild(scrollView);
+	AddChild(scrollView);
 
-	// Close button at bottom
-	float buttonWidth = 120;
-	float buttonHeight = 40;
-	float buttonX = (bounds.Width() - buttonWidth) / 2;
-	float buttonY = bounds.Height() - buttonAreaHeight + 7;
+	// Create button area view that draws paper background
+	BRect buttonAreaRect(0, scrollHeight, bounds.Width(), bounds.Height());
+	ButtonAreaView* buttonArea = new ButtonAreaView(buttonAreaRect);
+
+	float buttonX = (buttonAreaRect.Width() - buttonWidth) / 2;
+	float buttonY = (buttonAreaHeight - buttonHeight) / 2;
 
 	PlankButtonHowTo* closeBtn = new PlankButtonHowTo(
 		BRect(buttonX, buttonY, buttonX + buttonWidth, buttonY + buttonHeight),
 		"Close", new BMessage(B_QUIT_REQUESTED));
-	containerView->AddChild(closeBtn);
+	buttonArea->AddChild(closeBtn);
 
-	AddChild(containerView);
+	AddChild(buttonArea);
 }
 
 

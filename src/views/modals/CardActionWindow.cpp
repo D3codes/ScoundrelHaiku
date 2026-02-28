@@ -24,32 +24,39 @@ public:
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
 
-		// Draw solid dark background first
-		SetHighColor(40, 40, 50);
-		FillRect(bounds);
-
-		// Draw paper/parchment background texture for whole modal
-		BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
-		if (paperBg != NULL) {
-			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(paperBg, paperBg->Bounds(), bounds);
-			SetDrawingMode(B_OP_COPY);
-		} else {
-			SetHighColor(kCardBackgroundColor);
-			FillRect(bounds);
+		// Draw dark gradient background
+		for (float y = bounds.top; y <= bounds.bottom; y++) {
+			float ratio = (y - bounds.top) / bounds.Height();
+			int gray = 35 + (int)(ratio * 15);
+			SetHighColor(gray, gray, gray + 10);
+			StrokeLine(BPoint(bounds.left, y), BPoint(bounds.right, y));
 		}
 
-		// Draw card area with border
+		// Draw card area with paper background
+		float cardRadius = 12;
 		BRect cardRect(bounds.Width() / 2 - 80, 30,
 			bounds.Width() / 2 + 80, 230);
+
+		// Draw card background
+		SetHighColor(kCardBackgroundColor);
+		FillRoundRect(cardRect, cardRadius, cardRadius);
+
+		// Draw paper texture on card (inset for rounded corners)
+		BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
+		if (paperBg != NULL) {
+			BRect insetCardRect = cardRect.InsetByCopy(2, 2);
+			SetDrawingMode(B_OP_ALPHA);
+			DrawBitmap(paperBg, paperBg->Bounds(), insetCardRect);
+			SetDrawingMode(B_OP_COPY);
+		}
 
 		// Draw card border
 		SetHighColor(180, 170, 150);
 		SetPenSize(2);
-		StrokeRoundRect(cardRect, 15, 15);
+		StrokeRoundRect(cardRect, cardRadius, cardRadius);
 		SetPenSize(1);
 
-		// Draw card image
+		// Draw card image with rounded corners
 		BBitmap* cardImage = ResourceLoader::Instance()->GetCardImage(
 			fCard->GetImageName().String());
 
@@ -65,9 +72,21 @@ public:
 			float imageY = cardRect.top + 15;
 
 			BRect destRect(imageX, imageY, imageX + imageWidth, imageY + imageHeight);
+			float imageRadius = 8;
+
+			// Draw rounded background for image
+			SetHighColor(kCardBackgroundColor);
+			FillRoundRect(destRect, imageRadius, imageRadius);
+
+			// Draw image inset for rounded corners
+			BRect insetDestRect = destRect.InsetByCopy(2, 2);
 			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(cardImage, imageRect, destRect);
+			DrawBitmap(cardImage, imageRect, insetDestRect);
 			SetDrawingMode(B_OP_COPY);
+
+			// Draw rounded border around image
+			SetHighColor(160, 150, 130);
+			StrokeRoundRect(destRect, imageRadius, imageRadius);
 		}
 
 		// Draw icon and strength at bottom of card
@@ -148,7 +167,7 @@ public:
 		FillRoundRect(bounds, radius, radius);
 
 		// Draw plank background inset to show rounded corners
-		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("plank1");
+		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("woodButton");
 		if (plankBg != NULL) {
 			BRect insetBounds = bounds.InsetByCopy(2, 2);
 			SetDrawingMode(B_OP_ALPHA);

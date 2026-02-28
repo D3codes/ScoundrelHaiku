@@ -17,7 +17,8 @@ public:
 		  fMessage(message),
 		  fEnabled(true)
 	{
-		SetViewColor(80, 80, 90);
+		// Transparent so parent's stone slab shows through corners
+		SetViewColor(B_TRANSPARENT_COLOR);
 	}
 
 	virtual ~StoneButton() {
@@ -26,24 +27,31 @@ public:
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
-		float radius = 8;
+		float radius = 10;
 
-		// Draw solid rounded background first (shows in corners)
-		SetHighColor(80, 80, 90);
-		FillRoundRect(bounds, radius, radius);
-
-		// Draw the bitmap inset so corners show the rounded background
+		// Draw stone button texture with rounded corners
 		BBitmap* stoneBg = ResourceLoader::Instance()->GetUIImage("stoneButton");
 		if (stoneBg != NULL) {
+			// Draw solid rounded background first (darker stone color)
+			SetHighColor(60, 60, 70);
+			FillRoundRect(bounds, radius, radius);
+
+			// Draw the bitmap inset so rounded corners show
 			BRect insetBounds = bounds.InsetByCopy(2, 2);
 			SetDrawingMode(B_OP_ALPHA);
 			DrawBitmap(stoneBg, stoneBg->Bounds(), insetBounds);
 			SetDrawingMode(B_OP_COPY);
-		}
 
-		// Draw rounded border
-		SetHighColor(100, 100, 110);
-		StrokeRoundRect(bounds, radius, radius);
+			// Draw rounded border
+			SetHighColor(80, 80, 90);
+			StrokeRoundRect(bounds, radius, radius);
+		} else {
+			// Fallback: simple rounded button
+			SetHighColor(70, 70, 80);
+			FillRoundRect(bounds, radius, radius);
+			SetHighColor(90, 90, 100);
+			StrokeRoundRect(bounds, radius, radius);
+		}
 
 		// Draw label
 		BFont font;
@@ -68,8 +76,8 @@ public:
 
 		// Draw disabled overlay
 		if (!fEnabled) {
-			SetHighColor(128, 128, 128, 100);
-			FillRoundRect(bounds, 8, 8);
+			SetHighColor(0, 0, 0, 120);
+			FillRoundRect(bounds, radius, radius);
 		}
 	}
 
