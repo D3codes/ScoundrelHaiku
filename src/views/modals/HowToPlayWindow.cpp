@@ -14,30 +14,16 @@ public:
 	HowToPlayContentView(BRect frame)
 		: BView(frame, "howToContent", B_FOLLOW_ALL, B_WILL_DRAW)
 	{
-		// Use parchment-like color for clean scrolling
 		SetViewColor(222, 210, 190);
 	}
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
 
-		// Draw all the text content
-		float y = 50;
+		float y = 30;
 		float leftMargin = 20;
 		float rightMargin = bounds.Width() - 20;
 		float textWidth = rightMargin - leftMargin;
-
-		// Title
-		BFont titleFont;
-		titleFont.SetSize(32);
-		titleFont.SetFace(B_BOLD_FACE);
-		SetFont(&titleFont);
-		SetHighColor(kDarkTextColor);
-
-		const char* title = "How to Play";
-		float titleWidth = StringWidth(title);
-		DrawString(title, BPoint((bounds.Width() - titleWidth) / 2, y));
-		y += 50;
 
 		// Section header font
 		BFont sectionFont;
@@ -204,7 +190,7 @@ public:
 		DrawUIElementWithIcon("shield1", "Shield strength (reduces monster damage)", leftMargin, y);
 		y += 50;
 		DrawUIElementWithIcon("sword1", "Weapon strength (max monster you can attack)", leftMargin, y);
-		y += 300; // Large padding at bottom - whitespace behind close button when fully scrolled
+		y += 50;
 	}
 
 private:
@@ -219,7 +205,6 @@ private:
 		int32 length = str.Length();
 
 		while (start < length) {
-			// Find how many characters fit on this line
 			int32 end = start;
 			float width = 0;
 
@@ -227,7 +212,6 @@ private:
 				char c = str[end];
 				float charWidth = font.StringWidth(&c, 1);
 				if (width + charWidth > maxWidth && end > start) {
-					// Back up to last space
 					int32 lastSpace = end;
 					while (lastSpace > start && str[lastSpace] != ' ')
 						lastSpace--;
@@ -239,13 +223,11 @@ private:
 				end++;
 			}
 
-			// Draw this line
 			BString line;
 			str.CopyInto(line, start, end - start);
 			DrawString(line.String(), BPoint(x, currentY));
 			currentY += lineHeight;
 
-			// Skip whitespace at start of next line
 			start = end;
 			while (start < length && (str[start] == ' ' || str[start] == '\n'))
 				start++;
@@ -267,14 +249,12 @@ private:
 	}
 
 	void DrawUIElement(const char* symbol, const char* description, float x, float y) {
-		// Draw stone button background
 		BRect boxRect(x, y - 15, x + 40, y + 25);
 		SetHighColor(80, 80, 100);
 		FillRoundRect(boxRect, 5, 5);
 		SetHighColor(100, 100, 120);
 		StrokeRoundRect(boxRect, 5, 5);
 
-		// Draw symbol
 		BFont font;
 		font.SetSize(16);
 		font.SetFace(B_BOLD_FACE);
@@ -283,7 +263,6 @@ private:
 		float symbolWidth = StringWidth(symbol);
 		DrawString(symbol, BPoint(x + (40 - symbolWidth) / 2, y + 8));
 
-		// Draw description
 		font.SetSize(14);
 		font.SetFace(0);
 		SetFont(&font);
@@ -292,14 +271,12 @@ private:
 	}
 
 	void DrawUIElementWithIcon(const char* iconName, const char* description, float x, float y) {
-		// Draw glass-like box background
 		BRect boxRect(x, y - 15, x + 40, y + 25);
 		SetHighColor(200, 200, 220, 180);
 		FillRoundRect(boxRect, 5, 5);
 		SetHighColor(150, 150, 170);
 		StrokeRoundRect(boxRect, 5, 5);
 
-		// Draw icon
 		BBitmap* icon = ResourceLoader::Instance()->GetGlyph(iconName);
 		if (icon != NULL) {
 			BRect iconRect = icon->Bounds();
@@ -310,7 +287,6 @@ private:
 			SetDrawingMode(B_OP_COPY);
 		}
 
-		// Draw description
 		BFont font;
 		font.SetSize(14);
 		SetFont(&font);
@@ -320,50 +296,79 @@ private:
 };
 
 
-class PlankButtonHowTo : public BView {
+// Header view with close button and title
+class HowToPlayHeaderView : public BView {
 public:
-	PlankButtonHowTo(BRect frame, const char* label, BMessage* message)
-		: BView(frame, "plankBtn", B_FOLLOW_NONE, B_WILL_DRAW),
-		  fLabel(label),
+	HowToPlayHeaderView(BRect frame)
+		: BView(frame, "header", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP, B_WILL_DRAW)
+	{
+		SetViewColor(180, 165, 140);
+	}
+
+	virtual void Draw(BRect updateRect) {
+		BRect bounds = Bounds();
+
+		// Draw background
+		SetHighColor(180, 165, 140);
+		FillRect(bounds);
+
+		// Draw bottom border
+		SetHighColor(140, 125, 100);
+		StrokeLine(BPoint(0, bounds.bottom), BPoint(bounds.right, bounds.bottom));
+
+		// Draw title text (to the right of button)
+		BFont font;
+		font.SetSize(24);
+		font.SetFace(B_BOLD_FACE);
+		SetFont(&font);
+		SetHighColor(kDarkTextColor);
+
+		const char* title = "How to Play";
+		float textX = 60;  // After the close button
+		float textY = bounds.Height() / 2 + 8;
+		DrawString(title, BPoint(textX, textY));
+	}
+};
+
+
+// Close button for header
+class CloseButton : public BView {
+public:
+	CloseButton(BRect frame, BMessage* message)
+		: BView(frame, "closeBtn", B_FOLLOW_NONE, B_WILL_DRAW),
 		  fMessage(message)
 	{
 		SetViewColor(B_TRANSPARENT_COLOR);
 	}
 
-	virtual ~PlankButtonHowTo() {
+	virtual ~CloseButton() {
 		delete fMessage;
 	}
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
-		float radius = 8;
+		float radius = 5;
 
-		// Draw solid rounded background first (shows in corners)
-		SetHighColor(100, 70, 50);
+		// Draw button background
+		SetHighColor(160, 145, 120);
 		FillRoundRect(bounds, radius, radius);
 
-		// Draw plank background inset to show rounded corners
-		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("plank1");
-		if (plankBg != NULL) {
-			BRect insetBounds = bounds.InsetByCopy(2, 2);
-			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(plankBg, plankBg->Bounds(), insetBounds);
-			SetDrawingMode(B_OP_COPY);
-		}
-
-		// Draw rounded border
-		SetHighColor(120, 90, 60);
+		// Draw border
+		SetHighColor(120, 105, 80);
 		StrokeRoundRect(bounds, radius, radius);
 
+		// Draw X symbol
 		BFont font;
-		font.SetSize(20);
+		font.SetSize(18);
 		font.SetFace(B_BOLD_FACE);
 		SetFont(&font);
-		SetHighColor(kTextColor);
+		SetHighColor(80, 60, 40);
 
-		float textWidth = StringWidth(fLabel.String());
-		DrawString(fLabel.String(),
-			BPoint((bounds.Width() - textWidth) / 2, bounds.Height() / 2 + 7));
+		const char* symbol = "X";
+		float textWidth = StringWidth(symbol);
+		float textX = (bounds.Width() - textWidth) / 2;
+		float textY = bounds.Height() / 2 + 6;
+		DrawString(symbol, BPoint(textX, textY));
 	}
 
 	virtual void MouseDown(BPoint where) {
@@ -371,11 +376,8 @@ public:
 	}
 
 private:
-	BString fLabel;
 	BMessage* fMessage;
 };
-
-
 
 
 HowToPlayWindow::HowToPlayWindow(BWindow* parent)
@@ -396,49 +398,48 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 
 	BRect bounds = Bounds();
 
-	float buttonWidth = 120;
-	float buttonHeight = 40;
-	float buttonAreaHeight = 55;
+	float headerHeight = 50;
 
-	// Scroll view leaves room for button at bottom
-	float scrollHeight = bounds.Height() - buttonAreaHeight;
+	// Create header view
+	HowToPlayHeaderView* headerView = new HowToPlayHeaderView(
+		BRect(0, 0, bounds.Width(), headerHeight));
+	AddChild(headerView);
+
+	// Add close button to header
+	float buttonSize = 30;
+	float buttonMargin = 10;
+	CloseButton* closeBtn = new CloseButton(
+		BRect(buttonMargin, (headerHeight - buttonSize) / 2,
+			buttonMargin + buttonSize, (headerHeight + buttonSize) / 2),
+		new BMessage(B_QUIT_REQUESTED));
+	headerView->AddChild(closeBtn);
+
+	// Scroll view below header
+	float scrollTop = headerHeight;
+	float scrollHeight = bounds.Height() - headerHeight;
 	float contentWidth = bounds.Width() - B_V_SCROLL_BAR_WIDTH - 1;
-	float contentHeight = 1700; // Full scrollable height with padding at bottom
+	float contentHeight = 1400;
 
-	// Create content view at VISIBLE size initially (keeps scroll view sized correctly)
+	// Create content view at visible size initially
 	BRect contentRect(0, 0, contentWidth, scrollHeight);
 	HowToPlayContentView* contentView = new HowToPlayContentView(contentRect);
 
-	// Create scroll view - it adopts the content's frame (visible size)
+	// Create scroll view
 	BScrollView* scrollView = new BScrollView("scrollView", contentView,
-		B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP, 0, false, true, B_NO_BORDER);
+		B_FOLLOW_ALL, 0, false, true, B_NO_BORDER);
+	scrollView->MoveTo(0, scrollTop);
+	scrollView->ResizeTo(bounds.Width(), scrollHeight);
 	AddChild(scrollView);
 
-	// Now resize content to full scrollable height
+	// Resize content to full scrollable height
 	contentView->ResizeTo(contentWidth, contentHeight);
 
-	// Explicitly update scroll bar range since we resized content after creation
+	// Update scroll bar range
 	BScrollBar* vScrollBar = scrollView->ScrollBar(B_VERTICAL);
 	if (vScrollBar != NULL) {
 		vScrollBar->SetRange(0, contentHeight - scrollHeight);
 		vScrollBar->SetProportion(scrollHeight / contentHeight);
 	}
-
-	// Create a background view for button area that matches parchment
-	BView* buttonBgView = new BView(
-		BRect(0, scrollHeight, bounds.Width(), bounds.Height()),
-		"buttonBg", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM, 0);
-	buttonBgView->SetViewColor(222, 210, 190);
-	AddChild(buttonBgView);
-
-	// Add close button to the button background view
-	float buttonX = (bounds.Width() - buttonWidth) / 2;
-	float buttonY = (buttonAreaHeight - buttonHeight) / 2;
-
-	PlankButtonHowTo* closeBtn = new PlankButtonHowTo(
-		BRect(buttonX, buttonY, buttonX + buttonWidth, buttonY + buttonHeight),
-		"Close", new BMessage(B_QUIT_REQUESTED));
-	buttonBgView->AddChild(closeBtn);
 }
 
 

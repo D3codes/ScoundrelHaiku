@@ -141,19 +141,20 @@ Game::UseHealthPotion(int cardIndex)
 
 	fRoom.SetHasInteracted(true);
 
-	// Check for perfect health bonus
-	if (fPlayer.Health() == kMaxHealth) {
+	// Check if potion already used this room (must check first!)
+	if (fRoom.UsedHealthPotion()) {
+		// Potion already used - play glass breaking sound
+		SoundPlayer::Instance()->PlaySound(SFX_GLASS_BREAK);
+	} else if (fPlayer.Health() == kMaxHealth) {
 		// Already at full health - gain bonus points instead
 		fBonusPoints = card->Strength();
-		SoundPlayer::Instance()->PlaySound(SFX_SPARKLE);
-	} else if (!fRoom.UsedHealthPotion()) {
-		// Can only use one potion per room
-		fPlayer.UseHealthPotion(card->Strength());
 		fRoom.SetUsedHealthPotion(true);
 		SoundPlayer::Instance()->PlaySound(SFX_SPARKLE);
 	} else {
-		// Potion already used - play glass breaking sound
-		SoundPlayer::Instance()->PlaySound(SFX_GLASS_BREAK);
+		// Use the potion to heal
+		fPlayer.UseHealthPotion(card->Strength());
+		fRoom.SetUsedHealthPotion(true);
+		SoundPlayer::Instance()->PlaySound(SFX_SPARKLE);
 	}
 
 	NotifyPlayerUpdated();
