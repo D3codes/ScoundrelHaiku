@@ -225,7 +225,7 @@ private:
 CardActionWindow::CardActionWindow(BWindow* parent, Card* card,
 	int32 cardIndex, bool canUseWeapon, Player* player)
 	:
-	BWindow(BRect(0, 0, 280, 380), "Card Action",
+	BWindow(BRect(0, 0, 280, 440), "Card Action",
 		B_MODAL_WINDOW_LOOK, B_MODAL_SUBSET_WINDOW_FEEL,
 		B_NOT_RESIZABLE | B_NOT_ZOOMABLE | B_AUTO_UPDATE_SIZE_LIMITS),
 	fParent(parent),
@@ -247,6 +247,7 @@ CardActionWindow::CardActionWindow(BWindow* parent, Card* card,
 
 	float buttonWidth = 200;
 	float buttonHeight = 40;
+	float buttonSpacing = 20;
 	float centerX = bounds.Width() / 2;
 	float buttonY = 250;
 
@@ -278,12 +279,11 @@ CardActionWindow::CardActionWindow(BWindow* parent, Card* card,
 	}
 
 	mainView->AddChild(fFirstButton);
+	buttonY += buttonHeight + buttonSpacing;
 
 	// Create second action button (only for monsters with weapon)
 	fSecondButton = NULL;
 	if (card->Suit() == kSuitMonster && canUseWeapon && player != NULL) {
-		buttonY += buttonHeight + 10;
-
 		BMessage* secondMsg = new BMessage(kActionAttackWeapon);
 		int weaponDamage = card->Strength() - player->Weapon();
 		if (weaponDamage < 0) weaponDamage = 0;
@@ -296,10 +296,10 @@ CardActionWindow::CardActionWindow(BWindow* parent, Card* card,
 
 		((PlankButton*)fSecondButton)->SetDamagePreview(weaponDamage);
 		mainView->AddChild(fSecondButton);
+		buttonY += buttonHeight + buttonSpacing;
 	}
 
 	// Cancel button
-	buttonY = 340;
 	fCancelButton = new PlankButton(
 		BRect(centerX - buttonWidth / 2, buttonY,
 			centerX + buttonWidth / 2, buttonY + buttonHeight),

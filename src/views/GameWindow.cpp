@@ -5,11 +5,11 @@
 #include "modals/PauseWindow.h"
 #include "modals/GameOverWindow.h"
 #include "modals/DungeonBeatWindow.h"
+#include "modals/HowToPlayWindow.h"
 #include "helpers/SaveManager.h"
 #include "utils/Constants.h"
 #include "utils/MessageCodes.h"
 
-#include <Alert.h>
 #include <Application.h>
 
 GameWindow::GameWindow()
@@ -234,26 +234,8 @@ GameWindow::HandleCardAction(BMessage* message)
 void
 GameWindow::ShowHowToPlay()
 {
-	BString helpText;
-	helpText = "SCOUNDREL - How to Play\n\n";
-	helpText << "You are a scoundrel exploring dungeons filled with monsters.\n\n";
-	helpText << "CARDS:\n";
-	helpText << "- Monsters (red): Attack to defeat. Takes damage if unarmed.\n";
-	helpText << "- Weapons (blue): Equip to reduce damage from monsters.\n";
-	helpText << "- Potions (green): Drink to restore health.\n\n";
-	helpText << "COMBAT:\n";
-	helpText << "- Unarmed attack: Take full monster damage.\n";
-	helpText << "- With weapon: Damage = monster - weapon (min 0).\n";
-	helpText << "- Weapon can only attack weaker monsters than last attacked.\n";
-	helpText << "- Weapon breaks after attacking strength-2 monster.\n\n";
-	helpText << "RULES:\n";
-	helpText << "- One health potion per room.\n";
-	helpText << "- Flee returns cards to deck (can't flee next room).\n";
-	helpText << "- Clear all cards to beat the dungeon.\n";
-	helpText << "- Score = monsters defeated + health remaining.";
-
-	BAlert* alert = new BAlert("How to Play", helpText.String(), "OK");
-	alert->Go();
+	HowToPlayWindow* modal = new HowToPlayWindow(this);
+	modal->Show();
 }
 
 

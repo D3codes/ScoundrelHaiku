@@ -18,6 +18,7 @@ private:
 	BView*				fResumeButton;
 	BView*				fHowToPlayButton;
 	bool				fHasSavedGame;
+	int					fBackgroundIndex;
 };
 
 #endif // MAIN_MENU_VIEW_H

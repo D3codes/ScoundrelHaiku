@@ -5,6 +5,7 @@
 
 #include <Bitmap.h>
 #include <Window.h>
+#include <stdlib.h>
 
 // Custom plank-style button for main menu
 class PlankButtonMenu : public BView {
@@ -59,10 +60,14 @@ private:
 MainMenuView::MainMenuView(BRect frame)
 	:
 	BView(frame, "mainMenuView", B_FOLLOW_ALL, B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
-	fHasSavedGame(false)
+	fHasSavedGame(false),
+	fBackgroundIndex(1)
 {
 	// Use solid color - we draw our own background in Draw()
 	SetViewColor(30, 30, 40);
+
+	// Randomize background
+	fBackgroundIndex = (rand() % 5) + 1;
 
 	float centerX = frame.Width() / 2;
 	float buttonWidth = 200;
@@ -109,9 +114,19 @@ MainMenuView::Draw(BRect updateRect)
 {
 	BRect bounds = Bounds();
 
-	// Draw dark background
+	// Draw dark background first as fallback
 	SetHighColor(30, 30, 40);
 	FillRect(bounds);
+
+	// Draw dungeon background
+	BString bgName;
+	bgName.SetToFormat("dungeon%d", fBackgroundIndex);
+	BBitmap* background = ResourceLoader::Instance()->GetBackground(bgName.String());
+
+	if (background != NULL) {
+		SetDrawingMode(B_OP_COPY);
+		DrawBitmap(background, background->Bounds(), bounds);
+	}
 
 	// Draw title bar with stoneSlab2 background
 	BRect titleBarRect(0, 0, bounds.Width(), 80);
