@@ -24,6 +24,10 @@ public:
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
 
+		// Explicitly fill background to prevent underlying views showing through
+		SetHighColor(222, 210, 190);
+		FillRect(bounds);
+
 		// Draw card area with paper background
 		float cardRadius = 12;
 		BRect cardRect(bounds.Width() / 2 - 80, 30,

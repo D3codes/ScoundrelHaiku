@@ -69,11 +69,14 @@ CardView::DrawEmptySlot()
 	// This is needed because parent views are clipped and don't draw under children
 	BRect bounds = Bounds();
 
+	// Always fill with background color first to prevent artifacts
+	SetHighColor(kBackgroundColor);
+	FillRect(bounds);
+
 	if (Parent() == NULL || Parent()->Parent() == NULL)
 		return;
 
 	// Get background index from parent RoomView
-	// For now, just draw a portion of dungeon1 - the RoomView will set background
 	BView* roomView = Parent();
 	BView* gameBoard = roomView->Parent();
 
@@ -107,10 +110,6 @@ CardView::DrawEmptySlot()
 
 		SetDrawingMode(B_OP_COPY);
 		DrawBitmap(background, ourSrcRect, bounds);
-	} else {
-		// Fallback: fill with background color
-		SetHighColor(kBackgroundColor);
-		FillRect(bounds);
 	}
 }
 
