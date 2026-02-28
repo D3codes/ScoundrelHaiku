@@ -4,6 +4,7 @@
 #include "utils/MessageCodes.h"
 
 #include <Bitmap.h>
+#include <ScrollBar.h>
 #include <ScrollView.h>
 #include <String.h>
 #include <View.h>
@@ -404,18 +405,24 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 	float contentWidth = bounds.Width() - B_V_SCROLL_BAR_WIDTH - 1;
 	float contentHeight = 1700; // Full scrollable height with padding at bottom
 
-	// Create content view at FULL scrollable size
-	BRect contentRect(0, 0, contentWidth, contentHeight);
+	// Create content view at VISIBLE size initially (keeps scroll view sized correctly)
+	BRect contentRect(0, 0, contentWidth, scrollHeight);
 	HowToPlayContentView* contentView = new HowToPlayContentView(contentRect);
 
-	// Create scroll view - it adopts the content's full size frame
+	// Create scroll view - it adopts the content's frame (visible size)
 	BScrollView* scrollView = new BScrollView("scrollView", contentView,
 		B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP, 0, false, true, B_NO_BORDER);
-
-	// Resize scroll view to the visible area size
-	scrollView->ResizeTo(bounds.Width(), scrollHeight);
-
 	AddChild(scrollView);
+
+	// Now resize content to full scrollable height
+	contentView->ResizeTo(contentWidth, contentHeight);
+
+	// Explicitly update scroll bar range since we resized content after creation
+	BScrollBar* vScrollBar = scrollView->ScrollBar(B_VERTICAL);
+	if (vScrollBar != NULL) {
+		vScrollBar->SetRange(0, contentHeight - scrollHeight);
+		vScrollBar->SetProportion(scrollHeight / contentHeight);
+	}
 
 	// Create a background view for button area that matches parchment
 	BView* buttonBgView = new BView(
