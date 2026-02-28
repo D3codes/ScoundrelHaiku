@@ -54,20 +54,8 @@ CardView::Draw(BRect updateRect)
 void
 CardView::DrawEmptySlot()
 {
-	BRect bounds = Bounds();
-
-	// Fill entire area with solid dark color first (no transparency)
-	SetDrawingMode(B_OP_COPY);
-	SetHighColor(35, 35, 45);
-	FillRect(bounds);
-
-	// Draw dark rounded rectangle for empty slot
-	SetHighColor(45, 45, 55);
-	FillRoundRect(bounds, 8, 8);
-
-	// Draw border
-	SetHighColor(60, 60, 70);
-	StrokeRoundRect(bounds, 8, 8);
+	// Don't draw anything - let the background show through
+	// The view is already set to B_TRANSPARENT_COLOR
 }
 
 

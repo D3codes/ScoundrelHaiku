@@ -74,9 +74,9 @@ public:
 		}
 		DrawString(fLabel.String(), BPoint(textX, textY));
 
-		// Draw disabled overlay
+		// Draw disabled overlay - semi-transparent gray
 		if (!fEnabled) {
-			SetHighColor(0, 0, 0, 120);
+			SetHighColor(80, 80, 90, 180);
 			FillRoundRect(bounds, radius, radius);
 		}
 	}

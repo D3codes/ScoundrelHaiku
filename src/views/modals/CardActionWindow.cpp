@@ -17,20 +17,12 @@ public:
 		  fPlayer(player),
 		  fCanUseWeapon(canUseWeapon)
 	{
-		// Use a dark solid color as base
-		SetViewColor(40, 40, 50);
+		// Use parchment color to match How To Play view
+		SetViewColor(222, 210, 190);
 	}
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
-
-		// Draw dark gradient background
-		for (float y = bounds.top; y <= bounds.bottom; y++) {
-			float ratio = (y - bounds.top) / bounds.Height();
-			int gray = 35 + (int)(ratio * 15);
-			SetHighColor(gray, gray, gray + 10);
-			StrokeLine(BPoint(bounds.left, y), BPoint(bounds.right, y));
-		}
 
 		// Draw card area with paper background
 		float cardRadius = 12;
