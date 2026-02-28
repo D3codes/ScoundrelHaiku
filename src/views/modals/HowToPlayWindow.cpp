@@ -401,25 +401,26 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 	BRect bounds = Bounds();
 
 	float headerHeight = 50;
-
-	// Scroll view below header - add first so header is on top in z-order
 	float scrollTop = headerHeight;
 	float scrollHeight = bounds.Height() - headerHeight;
 	float contentWidth = bounds.Width() - B_V_SCROLL_BAR_WIDTH - 1;
-	float contentHeight = 1550;  // Enough for all UI elements plus padding
+	float contentHeight = 1550;
 
-	// Create content view at visible size initially
+	// Create a container view for the scroll area (positioned below header)
+	BView* scrollContainer = new BView(
+		BRect(0, scrollTop, bounds.Width(), bounds.Height()),
+		"scrollContainer", B_FOLLOW_ALL, 0);
+	scrollContainer->SetViewColor(222, 210, 190);
+	AddChild(scrollContainer);
+
+	// Create content view sized for the visible area
 	BRect contentRect(0, 0, contentWidth, scrollHeight);
 	HowToPlayContentView* contentView = new HowToPlayContentView(contentRect);
 
-	// Create scroll view
+	// Create scroll view inside the container
 	BScrollView* scrollView = new BScrollView("scrollView", contentView,
 		B_FOLLOW_ALL, 0, false, true, B_NO_BORDER);
-	AddChild(scrollView);
-
-	// Position scroll view below header
-	scrollView->MoveTo(0, scrollTop);
-	scrollView->ResizeTo(bounds.Width(), scrollHeight);
+	scrollContainer->AddChild(scrollView);
 
 	// Resize content to full scrollable height
 	contentView->ResizeTo(contentWidth, contentHeight);
