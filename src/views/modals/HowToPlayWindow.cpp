@@ -11,23 +11,25 @@
 class HowToPlayContentView : public BView {
 public:
 	HowToPlayContentView(BRect frame)
-		: BView(frame, "howToContent", B_FOLLOW_ALL, B_WILL_DRAW)
+		: BView(frame, "howToContent", B_FOLLOW_ALL,
+			B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE | B_FRAME_EVENTS)
 	{
-		SetViewColor(B_TRANSPARENT_COLOR);
+		// Use solid color to prevent scroll artifacts
+		SetViewColor(kCardBackgroundColor);
 	}
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
 
-		// Draw paper background
+		// Always fill with solid background first to prevent artifacts
+		SetHighColor(kCardBackgroundColor);
+		FillRect(bounds);
+
+		// Draw paper background on top
 		BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
 		if (paperBg != NULL) {
-			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(paperBg, paperBg->Bounds(), bounds);
 			SetDrawingMode(B_OP_COPY);
-		} else {
-			SetHighColor(kCardBackgroundColor);
-			FillRect(bounds);
+			DrawBitmap(paperBg, paperBg->Bounds(), bounds);
 		}
 
 		// Draw all the text content
@@ -352,7 +354,7 @@ public:
 		FillRoundRect(bounds, radius, radius);
 
 		// Draw plank background inset to show rounded corners
-		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("woodButton");
+		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("plank1");
 		if (plankBg != NULL) {
 			BRect insetBounds = bounds.InsetByCopy(2, 2);
 			SetDrawingMode(B_OP_ALPHA);
@@ -390,21 +392,21 @@ public:
 	ButtonAreaView(BRect frame)
 		: BView(frame, "buttonArea", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM, B_WILL_DRAW)
 	{
-		SetViewColor(B_TRANSPARENT_COLOR);
+		SetViewColor(kCardBackgroundColor);
 	}
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
 
+		// Fill with solid background first
+		SetHighColor(kCardBackgroundColor);
+		FillRect(bounds);
+
 		// Draw paper background to match content
 		BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
 		if (paperBg != NULL) {
-			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(paperBg, paperBg->Bounds(), bounds);
 			SetDrawingMode(B_OP_COPY);
-		} else {
-			SetHighColor(kCardBackgroundColor);
-			FillRect(bounds);
+			DrawBitmap(paperBg, paperBg->Bounds(), bounds);
 		}
 	}
 };

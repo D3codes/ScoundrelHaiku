@@ -31,7 +31,7 @@ public:
 		FillRoundRect(bounds, radius, radius);
 
 		// Draw plank background inset to show rounded corners
-		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("woodButton");
+		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("plank1");
 		if (plankBg != NULL) {
 			BRect insetBounds = bounds.InsetByCopy(2, 2);
 			SetDrawingMode(B_OP_ALPHA);
