@@ -403,8 +403,8 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 	float scrollWidth = bounds.Width() - B_V_SCROLL_BAR_WIDTH;
 	float scrollHeight = bounds.Height() - buttonAreaHeight;
 
-	// Content height for all text content
-	float contentHeight = 1050;
+	// Content height for all text content (UI section ends around y=1270)
+	float contentHeight = 1300;
 	BRect contentRect(0, 0, scrollWidth - 1, contentHeight);
 
 	HowToPlayContentView* contentView = new HowToPlayContentView(contentRect);
