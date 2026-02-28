@@ -203,7 +203,7 @@ public:
 		DrawUIElementWithIcon("shield1", "Shield strength (reduces monster damage)", leftMargin, y);
 		y += 50;
 		DrawUIElementWithIcon("sword1", "Weapon strength (max monster you can attack)", leftMargin, y);
-		y += 180; // Extra padding at bottom so content isn't obscured by close button
+		y += 300; // Large padding at bottom - whitespace behind close button when fully scrolled
 	}
 
 private:
@@ -412,8 +412,8 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 		B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP, 0, false, true, B_NO_BORDER);
 	AddChild(scrollView);
 
-	// Now resize content to full scrollable height (content ends around y=1490 with better spacing + bottom padding)
-	contentView->ResizeTo(contentWidth, 1560);
+	// Now resize content to full scrollable height (content ends around y=1610 with better spacing + large bottom padding)
+	contentView->ResizeTo(contentWidth, 1700);
 
 	// Create a background view for button area that matches parchment
 	BView* buttonBgView = new BView(
