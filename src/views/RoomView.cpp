@@ -378,16 +378,31 @@ RoomView::RefreshWithAnimation()
 		deckPosInRoom.y -= ourPos.y;
 	}
 
-	// Set up animations for all cards that exist in the room
+	// Figure out which cards need animation
+	// Compare CardView's current card with Room's card to identify:
+	// - New cards (need animation): room has card, view has different/no card
+	// - Carried over cards (no animation): room and view have same card
+	// - Empty slots: room has no card
 	fNextCardToDeal = -1;
 	for (int i = 0; i < 4; i++) {
 		Card* roomCard = fRoom->GetCard(i);
-		fAnimations[i].card = roomCard;
+		Card* viewCard = fCardViews[i]->GetCard();
+
+		// Check if this is the same card (carried over from previous room)
+		bool isCarriedOver = (roomCard != NULL && roomCard == viewCard);
+		// Check if this is a new card that needs animation
+		bool isNewCard = (roomCard != NULL && roomCard != viewCard);
+
 		fAnimations[i].active = false;
 		fAnimations[i].progress = 0.0f;
 
-		if (roomCard != NULL) {
-			// Set up animation parameters
+		if (isCarriedOver) {
+			// Card carried over from previous room - don't animate, leave as is
+			fAnimations[i].card = NULL;
+			// CardView already displays this card correctly
+		} else if (isNewCard) {
+			// New card - set up animation
+			fAnimations[i].card = roomCard;
 			fAnimations[i].startPos = deckPosInRoom;
 			fAnimations[i].endPos = GetCardCenterPosition(i);
 			fAnimations[i].startScale = 0.3f;  // Start small (deck size)
@@ -401,6 +416,8 @@ RoomView::RefreshWithAnimation()
 			if (fNextCardToDeal < 0)
 				fNextCardToDeal = i;
 		} else {
+			// Empty slot or stale card - clear it
+			fAnimations[i].card = NULL;
 			fCardViews[i]->SetAnimating(false);
 			fCardViews[i]->ClearCard();
 		}
@@ -424,7 +441,7 @@ RoomView::DealNextCard()
 		return;
 	}
 
-	// Find the next card to deal
+	// Find the next card to deal (skip NULL entries - carried over or empty)
 	while (fNextCardToDeal < 4 && fAnimations[fNextCardToDeal].card == NULL) {
 		fNextCardToDeal++;
 	}
@@ -448,9 +465,10 @@ RoomView::DealNextCard()
 			kAnimationInterval, -1); // -1 = infinite
 	}
 
+	int currentCard = fNextCardToDeal;
 	fNextCardToDeal++;
 
-	// Schedule next card deal
+	// Schedule next card deal if there are more new cards to animate
 	bool moreCards = false;
 	for (int i = fNextCardToDeal; i < 4; i++) {
 		if (fAnimations[i].card != NULL) {
