@@ -191,19 +191,19 @@ public:
 
 		SetFont(&bodyFont);
 		DrawUIElement("||", "Pause the game", leftMargin, y);
-		y += 35;
-		DrawUIElementWithIcon("deck", "Cards remaining in the deck", leftMargin, y);
-		y += 35;
-		DrawUIElementWithIcon("dungeonGlyph", "Dungeons beaten", leftMargin, y);
-		y += 35;
-		DrawUIElement("Run", "Flee the current room", leftMargin, y);
-		y += 35;
-		DrawUIElementWithIcon("heart1", "Your life", leftMargin, y);
-		y += 35;
-		DrawUIElementWithIcon("shield1", "Shield strength (reduces monster damage)", leftMargin, y);
-		y += 35;
-		DrawUIElementWithIcon("sword1", "Weapon strength (max monster you can attack)", leftMargin, y);
 		y += 50;
+		DrawUIElementWithIcon("deck", "Cards remaining in the deck", leftMargin, y);
+		y += 50;
+		DrawUIElementWithIcon("dungeonGlyph", "Dungeons beaten", leftMargin, y);
+		y += 50;
+		DrawUIElement("Run", "Flee the current room", leftMargin, y);
+		y += 50;
+		DrawUIElementWithIcon("heart1", "Your life", leftMargin, y);
+		y += 50;
+		DrawUIElementWithIcon("shield1", "Shield strength (reduces monster damage)", leftMargin, y);
+		y += 50;
+		DrawUIElementWithIcon("sword1", "Weapon strength (max monster you can attack)", leftMargin, y);
+		y += 60;
 	}
 
 private:
@@ -412,8 +412,8 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 		B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP, 0, false, true, B_NO_BORDER);
 	AddChild(scrollView);
 
-	// Now resize content to full scrollable height (content ends around y=1270)
-	contentView->ResizeTo(contentWidth, 1300);
+	// Now resize content to full scrollable height (content ends around y=1370 with better spacing)
+	contentView->ResizeTo(contentWidth, 1400);
 
 	// Create a background view for button area that matches parchment
 	BView* buttonBgView = new BView(
