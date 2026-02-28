@@ -12,8 +12,8 @@
 #include <Window.h>
 
 static const bigtime_t kAnimationInterval = 16667;  // ~60fps (microseconds)
-static const bigtime_t kDealDelay = 200000;         // 200ms between cards
-static const float kAnimationDuration = 0.3f;       // 300ms per card animation
+static const bigtime_t kDealDelay = 350000;         // 350ms between cards
+static const float kAnimationDuration = 0.5f;       // 500ms per card animation
 static const float kAnimationStep = kAnimationInterval / 1000000.0f / kAnimationDuration;
 
 RoomView::RoomView(BRect frame)
@@ -330,6 +330,10 @@ RoomView::SetRoom(Room* room)
 void
 RoomView::Refresh()
 {
+	// Don't override card views if animation is in progress
+	if (fIsDealing)
+		return;
+
 	if (fRoom == NULL) {
 		for (int i = 0; i < 4; i++) {
 			fCardViews[i]->ClearCard();

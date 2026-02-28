@@ -47,7 +47,7 @@ void
 CardView::ClearCard()
 {
 	fCard = NULL;
-	fIsAnimating = false;
+	// Don't reset fIsAnimating - let SetAnimating() control it
 	Invalidate();
 }
 
