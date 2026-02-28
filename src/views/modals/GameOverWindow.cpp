@@ -15,28 +15,25 @@ public:
 		  fScore(score),
 		  fDungeonsBeaten(dungeonsBeaten)
 	{
-		SetViewColor(B_TRANSPARENT_COLOR);
+		SetViewColor(40, 40, 50);
 	}
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
 
-		// Draw semi-transparent overlay
-		SetHighColor(0, 0, 0, 180);
+		// Draw solid dark background
+		SetHighColor(40, 40, 50);
 		FillRect(bounds);
 
-		// Draw paper background for modal
-		BRect modalRect(bounds.Width() / 2 - 150, bounds.Height() / 2 - 200,
-			bounds.Width() / 2 + 150, bounds.Height() / 2 + 200);
-
+		// Draw paper background for whole modal
 		BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
 		if (paperBg != NULL) {
 			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(paperBg, paperBg->Bounds(), modalRect);
+			DrawBitmap(paperBg, paperBg->Bounds(), bounds);
 			SetDrawingMode(B_OP_COPY);
 		} else {
 			SetHighColor(kCardBackgroundColor);
-			FillRoundRect(modalRect, 20, 20);
+			FillRect(bounds);
 		}
 
 		// Draw title "Game Over"
@@ -44,12 +41,11 @@ public:
 		titleFont.SetSize(36);
 		titleFont.SetFace(B_BOLD_FACE);
 		SetFont(&titleFont);
-		SetHighColor(kTextColor);
+		SetHighColor(kDarkTextColor);
 
 		const char* title = "Game Over";
 		float titleWidth = StringWidth(title);
-		DrawString(title, BPoint(bounds.Width() / 2 - titleWidth / 2,
-			modalRect.top + 60));
+		DrawString(title, BPoint(bounds.Width() / 2 - titleWidth / 2, 60));
 
 		// Draw score
 		BFont bodyFont;
@@ -61,9 +57,9 @@ public:
 		BString scoreValue;
 		scoreValue.SetToFormat("%d", fScore);
 
-		float labelX = modalRect.left + 50;
-		float valueX = modalRect.right - 50 - StringWidth(scoreValue.String());
-		float scoreY = modalRect.top + 120;
+		float labelX = 50;
+		float valueX = bounds.Width() - 50 - StringWidth(scoreValue.String());
+		float scoreY = 120;
 
 		DrawString(scoreLabel.String(), BPoint(labelX, scoreY));
 		DrawString(scoreValue.String(), BPoint(valueX, scoreY));
@@ -73,7 +69,7 @@ public:
 		BString dungeonValue;
 		dungeonValue.SetToFormat("%d", fDungeonsBeaten);
 
-		valueX = modalRect.right - 50 - StringWidth(dungeonValue.String());
+		valueX = bounds.Width() - 50 - StringWidth(dungeonValue.String());
 		float dungeonY = scoreY + 40;
 
 		DrawString(dungeonLabel.String(), BPoint(labelX, dungeonY));
@@ -102,16 +98,24 @@ public:
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
+		float radius = 8;
 
+		// Draw solid rounded background first (shows in corners)
+		SetHighColor(100, 70, 50);
+		FillRoundRect(bounds, radius, radius);
+
+		// Draw plank background inset to show rounded corners
 		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("plank1");
 		if (plankBg != NULL) {
+			BRect insetBounds = bounds.InsetByCopy(2, 2);
 			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(plankBg, plankBg->Bounds(), bounds);
+			DrawBitmap(plankBg, plankBg->Bounds(), insetBounds);
 			SetDrawingMode(B_OP_COPY);
-		} else {
-			SetHighColor(100, 70, 50);
-			FillRoundRect(bounds, 5, 5);
 		}
+
+		// Draw rounded border
+		SetHighColor(120, 90, 60);
+		StrokeRoundRect(bounds, radius, radius);
 
 		BFont font;
 		font.SetSize(20);

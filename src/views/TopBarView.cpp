@@ -26,17 +26,24 @@ public:
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
+		float radius = 8;
 
-		// Always draw solid background first
+		// Draw solid rounded background first (shows in corners)
 		SetHighColor(80, 80, 90);
-		FillRoundRect(bounds, 8, 8);
+		FillRoundRect(bounds, radius, radius);
 
+		// Draw the bitmap inset so corners show the rounded background
 		BBitmap* stoneBg = ResourceLoader::Instance()->GetUIImage("stoneButton");
 		if (stoneBg != NULL) {
+			BRect insetBounds = bounds.InsetByCopy(2, 2);
 			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(stoneBg, stoneBg->Bounds(), bounds);
+			DrawBitmap(stoneBg, stoneBg->Bounds(), insetBounds);
 			SetDrawingMode(B_OP_COPY);
 		}
+
+		// Draw rounded border
+		SetHighColor(100, 100, 110);
+		StrokeRoundRect(bounds, radius, radius);
 
 		// Draw label
 		BFont font;

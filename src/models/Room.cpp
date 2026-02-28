@@ -80,6 +80,7 @@ Room::NextRoom(Deck* deck, bool fledLastRoom)
 	// Can't flee if just fled
 	fCanFlee = !fledLastRoom;
 	fUsedHealthPotion = false;
+	fPlayerFled = false;  // Reset for new room
 
 	DealCards(deck);
 }

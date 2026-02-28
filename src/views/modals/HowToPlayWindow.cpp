@@ -345,16 +345,24 @@ public:
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
+		float radius = 8;
 
+		// Draw solid rounded background first (shows in corners)
+		SetHighColor(100, 70, 50);
+		FillRoundRect(bounds, radius, radius);
+
+		// Draw plank background inset to show rounded corners
 		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("plank1");
 		if (plankBg != NULL) {
+			BRect insetBounds = bounds.InsetByCopy(2, 2);
 			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(plankBg, plankBg->Bounds(), bounds);
+			DrawBitmap(plankBg, plankBg->Bounds(), insetBounds);
 			SetDrawingMode(B_OP_COPY);
-		} else {
-			SetHighColor(100, 70, 50);
-			FillRoundRect(bounds, 5, 5);
 		}
+
+		// Draw rounded border
+		SetHighColor(120, 90, 60);
+		StrokeRoundRect(bounds, radius, radius);
 
 		BFont font;
 		font.SetSize(20);
@@ -404,7 +412,9 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 	float scrollWidth = bounds.Width() - B_V_SCROLL_BAR_WIDTH - 1;
 	float scrollHeight = bounds.Height() - buttonAreaHeight;
 	BRect scrollRect(0, 0, scrollWidth, scrollHeight);
-	BRect contentRect(0, 0, scrollWidth, 1200); // Tall enough for all content
+	// Content is 1200 pixels tall + extra padding at bottom so user can scroll
+	// past the close button to see all content
+	BRect contentRect(0, 0, scrollWidth, 1280);
 
 	HowToPlayContentView* contentView = new HowToPlayContentView(contentRect);
 

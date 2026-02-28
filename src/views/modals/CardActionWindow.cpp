@@ -17,29 +17,31 @@ public:
 		  fPlayer(player),
 		  fCanUseWeapon(canUseWeapon)
 	{
-		SetViewColor(B_TRANSPARENT_COLOR);
+		// Use a dark solid color as base
+		SetViewColor(40, 40, 50);
 	}
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
 
-		// Draw semi-transparent overlay background
-		SetHighColor(0, 0, 0, 180);
+		// Draw solid dark background first
+		SetHighColor(40, 40, 50);
 		FillRect(bounds);
 
-		// Draw paper background for card area
-		BRect cardRect(bounds.Width() / 2 - 80, 30,
-			bounds.Width() / 2 + 80, 230);
-
+		// Draw paper/parchment background texture for whole modal
 		BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
 		if (paperBg != NULL) {
 			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(paperBg, paperBg->Bounds(), cardRect);
+			DrawBitmap(paperBg, paperBg->Bounds(), bounds);
 			SetDrawingMode(B_OP_COPY);
 		} else {
 			SetHighColor(kCardBackgroundColor);
-			FillRoundRect(cardRect, 15, 15);
+			FillRect(bounds);
 		}
+
+		// Draw card area with border
+		BRect cardRect(bounds.Width() / 2 - 80, 30,
+			bounds.Width() / 2 + 80, 230);
 
 		// Draw card border
 		SetHighColor(180, 170, 150);
@@ -139,21 +141,28 @@ public:
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
+		float radius = 8;
 
-		// Draw plank background
+		// Draw solid rounded background first (shows in corners)
+		SetHighColor(100, 70, 50);
+		FillRoundRect(bounds, radius, radius);
+
+		// Draw plank background inset to show rounded corners
 		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("plank1");
 		if (plankBg != NULL) {
+			BRect insetBounds = bounds.InsetByCopy(2, 2);
 			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(plankBg, plankBg->Bounds(), bounds);
+			DrawBitmap(plankBg, plankBg->Bounds(), insetBounds);
 			SetDrawingMode(B_OP_COPY);
-		} else {
-			SetHighColor(100, 70, 50);
-			FillRoundRect(bounds, 5, 5);
 		}
+
+		// Draw rounded border
+		SetHighColor(120, 90, 60);
+		StrokeRoundRect(bounds, radius, radius);
 
 		if (!fEnabled) {
 			SetHighColor(0, 0, 0, 100);
-			FillRect(bounds);
+			FillRoundRect(bounds, radius, radius);
 		}
 
 		// Draw button text

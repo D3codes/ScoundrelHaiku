@@ -24,17 +24,24 @@ public:
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
+		float radius = 8;
 
-		// Always draw solid background first
+		// Draw solid rounded background first (shows in corners)
 		SetHighColor(100, 70, 50);
-		FillRoundRect(bounds, 5, 5);
+		FillRoundRect(bounds, radius, radius);
 
+		// Draw plank background inset to show rounded corners
 		BBitmap* plankBg = ResourceLoader::Instance()->GetUIImage("plank1");
 		if (plankBg != NULL) {
+			BRect insetBounds = bounds.InsetByCopy(2, 2);
 			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(plankBg, plankBg->Bounds(), bounds);
+			DrawBitmap(plankBg, plankBg->Bounds(), insetBounds);
 			SetDrawingMode(B_OP_COPY);
 		}
+
+		// Draw rounded border
+		SetHighColor(120, 90, 60);
+		StrokeRoundRect(bounds, radius, radius);
 
 		BFont font;
 		font.SetSize(22);
