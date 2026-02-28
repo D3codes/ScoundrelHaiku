@@ -13,7 +13,14 @@ CardView::CardView(BRect frame, int32 index)
 	BView(frame, "cardView", B_FOLLOW_NONE, B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
 	fIndex(index),
 	fCard(NULL),
-	fBackgroundIndex(1)
+	fBackgroundIndex(1),
+	fIsAnimating(false),
+	fAnimationProgress(0.0f),
+	fStartPosition(0, 0),
+	fEndPosition(frame.LeftTop()),
+	fStartScale(0.3f),
+	fEndScale(1.0f),
+	fDeckPosition(0, 0)
 {
 	// Transparent to allow dungeon background to show around cards
 	SetViewColor(B_TRANSPARENT_COLOR);
@@ -39,6 +46,38 @@ void
 CardView::SetCard(Card* card)
 {
 	fCard = card;
+	fIsAnimating = false;
+	Invalidate();
+}
+
+
+void
+CardView::SetCardWithAnimation(Card* card, BPoint startPos, float startScale)
+{
+	fCard = card;
+	fIsAnimating = true;
+	fAnimationProgress = 0.0f;
+	fStartPosition = startPos;
+	fEndPosition = Frame().LeftTop();
+	fStartScale = startScale;
+	fEndScale = 1.0f;
+	Invalidate();
+}
+
+
+void
+CardView::UpdateAnimation()
+{
+	if (!fIsAnimating)
+		return;
+
+	// Advance animation with easing (ease-out cubic)
+	fAnimationProgress += 0.08f;
+	if (fAnimationProgress >= 1.0f) {
+		fAnimationProgress = 1.0f;
+		fIsAnimating = false;
+	}
+
 	Invalidate();
 }
 
@@ -56,6 +95,8 @@ CardView::Draw(BRect updateRect)
 {
 	if (fCard == NULL) {
 		DrawEmptySlot();
+	} else if (fIsAnimating) {
+		DrawAnimatingCard();
 	} else {
 		DrawCard();
 	}
@@ -234,9 +275,137 @@ CardView::DrawCard()
 
 
 void
+CardView::DrawAnimatingCard()
+{
+	// First draw the empty slot background
+	DrawEmptySlot();
+
+	if (fCard == NULL)
+		return;
+
+	BRect bounds = Bounds();
+
+	// Apply ease-out cubic easing
+	float t = fAnimationProgress;
+	float eased = 1.0f - (1.0f - t) * (1.0f - t) * (1.0f - t);
+
+	// Interpolate scale
+	float scale = fStartScale + (fEndScale - fStartScale) * eased;
+
+	// Calculate scaled card size
+	float cardWidth = bounds.Width() * scale;
+	float cardHeight = bounds.Height() * scale;
+
+	// Interpolate position (convert from parent coordinates to our local coordinates)
+	float startX = fStartPosition.x - Frame().left;
+	float startY = fStartPosition.y - Frame().top;
+	float endX = (bounds.Width() - cardWidth) / 2;
+	float endY = (bounds.Height() - cardHeight) / 2;
+
+	float currentX = startX + (endX - startX) * eased;
+	float currentY = startY + (endY - startY) * eased;
+
+	// Create the animated card rect
+	BRect cardRect(currentX, currentY, currentX + cardWidth, currentY + cardHeight);
+	float radius = 12 * scale;
+
+	// Draw shadow
+	SetHighColor(0, 0, 0, (uint8)(100 * eased));
+	BRect shadowRect = cardRect;
+	shadowRect.OffsetBy(4 * scale, 4 * scale);
+	FillRoundRect(shadowRect, radius, radius);
+
+	// Draw card background
+	SetHighColor(kCardBackgroundColor);
+	FillRoundRect(cardRect, radius, radius);
+
+	// Draw paper texture
+	BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
+	if (paperBg != NULL) {
+		BRect insetRect = cardRect.InsetByCopy(2 * scale, 2 * scale);
+		SetDrawingMode(B_OP_ALPHA);
+		DrawBitmap(paperBg, paperBg->Bounds(), insetRect);
+		SetDrawingMode(B_OP_COPY);
+	}
+
+	// Draw border
+	SetHighColor(180, 170, 150);
+	StrokeRoundRect(cardRect, radius, radius);
+
+	// Draw card image
+	BBitmap* cardImage = ResourceLoader::Instance()->GetCardImage(
+		fCard->GetImageName().String());
+
+	float bottomAreaHeight = 45 * scale;
+	float imageAreaHeight = cardHeight - bottomAreaHeight;
+
+	if (cardImage != NULL) {
+		BRect imageRect = cardImage->Bounds();
+		float padding = 10 * scale;
+		float availWidth = cardWidth - padding * 2;
+		float availHeight = imageAreaHeight - padding * 2;
+
+		float imgScale = availWidth / imageRect.Width();
+		if (availHeight / imageRect.Height() < imgScale)
+			imgScale = availHeight / imageRect.Height();
+
+		float imageWidth = imageRect.Width() * imgScale;
+		float imageHeight = imageRect.Height() * imgScale;
+		float imageX = cardRect.left + (cardWidth - imageWidth) / 2;
+		float imageY = cardRect.top + padding;
+
+		BRect destRect(imageX, imageY, imageX + imageWidth, imageY + imageHeight);
+		float imageRadius = 8 * scale;
+
+		SetHighColor(kCardBackgroundColor);
+		FillRoundRect(destRect, imageRadius, imageRadius);
+
+		BRect insetDestRect = destRect.InsetByCopy(2 * scale, 2 * scale);
+		SetDrawingMode(B_OP_ALPHA);
+		DrawBitmap(cardImage, imageRect, insetDestRect);
+		SetDrawingMode(B_OP_COPY);
+
+		SetHighColor(160, 150, 130);
+		StrokeRoundRect(destRect, imageRadius, imageRadius);
+	}
+
+	// Draw icon and strength at bottom
+	float iconSize = 24 * scale;
+	BBitmap* suitIcon = ResourceLoader::Instance()->GetGlyph(
+		fCard->GetIconName().String());
+
+	BFont font;
+	font.SetSize(24 * scale);
+	font.SetFace(B_BOLD_FACE);
+	SetFont(&font);
+
+	BString strengthStr;
+	strengthStr.SetToFormat("%d", fCard->Strength());
+	float textWidth = StringWidth(strengthStr.String());
+
+	float spacing = 8 * scale;
+	float totalWidth = iconSize + spacing + textWidth;
+	float startIconX = cardRect.left + (cardWidth - totalWidth) / 2;
+	float bottomY = cardRect.bottom - 12 * scale;
+
+	if (suitIcon != NULL) {
+		SetDrawingMode(B_OP_ALPHA);
+		DrawBitmap(suitIcon, suitIcon->Bounds(),
+			BRect(startIconX, bottomY - iconSize, startIconX + iconSize, bottomY));
+		SetDrawingMode(B_OP_COPY);
+	}
+
+	SetHighColor(0, 0, 0);
+	DrawString(strengthStr.String(),
+		BPoint(startIconX + iconSize + spacing, bottomY - 3 * scale));
+}
+
+
+void
 CardView::MouseDown(BPoint where)
 {
-	if (fCard == NULL)
+	// Don't allow selection during animation
+	if (fCard == NULL || fIsAnimating)
 		return;
 
 	// Send message to parent

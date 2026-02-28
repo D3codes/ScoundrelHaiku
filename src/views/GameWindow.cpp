@@ -267,7 +267,7 @@ void
 GameWindow::OnRoomUpdated()
 {
 	if (fGameBoardView != NULL)
-		fGameBoardView->Refresh();
+		fGameBoardView->RefreshWithAnimation();
 }
 
 

@@ -116,6 +116,25 @@ GameBoardView::SetGame(Game* game)
 	fRoomView->SetRoom(game->GetRoom());
 	fStatsBarView->SetPlayer(game->GetPlayer());
 
+	// Calculate deck position for card animations
+	// The deck icon is in the top bar, centered in the first icon box
+	float padding = 10;
+	float buttonSize = 50;
+	float spacing = 8;
+	float iconBoxSize = 50;
+	float scoreBoxWidth = 80;
+	float topBarWidth = Bounds().Width();
+
+	float totalBoxesWidth = iconBoxSize + spacing + scoreBoxWidth + spacing + iconBoxSize;
+	float leftEdge = padding + buttonSize + spacing;
+	float rightEdge = topBarWidth - padding - buttonSize - spacing;
+	float availableWidth = rightEdge - leftEdge;
+	float startX = leftEdge + (availableWidth - totalBoxesWidth) / 2;
+
+	// Deck box is the first one, center of it
+	BPoint deckPos(startX + iconBoxSize / 2, 15 + iconBoxSize / 2);
+	fRoomView->SetDeckPosition(deckPos);
+
 	Refresh();
 }
 
@@ -140,4 +159,24 @@ GameBoardView::Refresh()
 		Window()->UpdateIfNeeded();
 		Sync();
 	}
+}
+
+
+void
+GameBoardView::RefreshWithAnimation()
+{
+	if (fGame == NULL)
+		return;
+
+	// Refresh top bar and stats bar normally
+	if (fTopBarView != NULL)
+		fTopBarView->Refresh();
+	if (fStatsBarView != NULL)
+		fStatsBarView->Refresh();
+
+	// Animate the room cards
+	if (fRoomView != NULL)
+		fRoomView->RefreshWithAnimation();
+
+	Invalidate();
 }

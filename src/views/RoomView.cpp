@@ -2,21 +2,34 @@
 #include "CardView.h"
 #include "models/Room.h"
 #include "helpers/ResourceLoader.h"
+#include "helpers/SoundPlayer.h"
 #include "utils/Constants.h"
+#include "utils/MessageCodes.h"
 
 #include <Bitmap.h>
 #include <String.h>
 #include <Window.h>
+
+static const bigtime_t kAnimationInterval = 16667;  // ~60fps (microseconds)
+static const bigtime_t kDealDelay = 300000;         // 300ms between cards
 
 RoomView::RoomView(BRect frame)
 	:
 	BView(frame, "roomView", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP,
 		B_WILL_DRAW | B_FRAME_EVENTS | B_FULL_UPDATE_ON_RESIZE),
 	fRoom(NULL),
-	fBackgroundIndex(1)
+	fBackgroundIndex(1),
+	fIsDealing(false),
+	fNextCardToDeal(0),
+	fAnimationRunner(NULL),
+	fDealRunner(NULL),
+	fDeckPosition(0, 0)
 {
 	// Use solid color as fallback
 	SetViewColor(kBackgroundColor);
+
+	for (int i = 0; i < 4; i++)
+		fCardsToAnimate[i] = false;
 
 	// Calculate card positions for 2x2 grid
 	float cardWidth = kCardWidth;
@@ -44,7 +57,8 @@ RoomView::RoomView(BRect frame)
 
 RoomView::~RoomView()
 {
-	// Child views are deleted by BView
+	delete fAnimationRunner;
+	delete fDealRunner;
 }
 
 
@@ -52,6 +66,25 @@ void
 RoomView::AttachedToWindow()
 {
 	BView::AttachedToWindow();
+}
+
+
+void
+RoomView::MessageReceived(BMessage* message)
+{
+	switch (message->what) {
+		case kMsgAnimationTick:
+			UpdateAnimations();
+			break;
+
+		case kMsgDealNextCard:
+			DealNextCard();
+			break;
+
+		default:
+			BView::MessageReceived(message);
+			break;
+	}
 }
 
 
@@ -108,6 +141,16 @@ RoomView::SetBackgroundIndex(int index)
 
 
 void
+RoomView::SetDeckPosition(BPoint deckPos)
+{
+	fDeckPosition = deckPos;
+	for (int i = 0; i < 4; i++) {
+		fCardViews[i]->SetDeckPosition(deckPos);
+	}
+}
+
+
+void
 RoomView::SetRoom(Room* room)
 {
 	fRoom = room;
@@ -135,4 +178,142 @@ RoomView::Refresh()
 	}
 
 	Invalidate();
+}
+
+
+void
+RoomView::RefreshWithAnimation()
+{
+	if (fRoom == NULL) {
+		Refresh();
+		return;
+	}
+
+	// Stop any existing animation
+	delete fAnimationRunner;
+	fAnimationRunner = NULL;
+	delete fDealRunner;
+	fDealRunner = NULL;
+
+	// Figure out which cards need to be dealt (currently NULL in view but exist in room)
+	fNextCardToDeal = -1;
+	for (int i = 0; i < 4; i++) {
+		Card* roomCard = fRoom->GetCard(i);
+		// If room has a card but view doesn't show it yet
+		fCardsToAnimate[i] = (roomCard != NULL);
+
+		// Clear all cards first to show empty slots
+		fCardViews[i]->ClearCard();
+	}
+
+	// Find first card to deal
+	for (int i = 0; i < 4; i++) {
+		if (fCardsToAnimate[i]) {
+			fNextCardToDeal = i;
+			break;
+		}
+	}
+
+	if (fNextCardToDeal >= 0) {
+		fIsDealing = true;
+		// Start dealing after a short delay
+		BMessage dealMsg(kMsgDealNextCard);
+		fDealRunner = new BMessageRunner(BMessenger(this), &dealMsg, kDealDelay, 1);
+	}
+
+	Invalidate();
+}
+
+
+void
+RoomView::DealNextCard()
+{
+	if (fNextCardToDeal < 0 || fNextCardToDeal >= 4 || fRoom == NULL) {
+		fIsDealing = false;
+		return;
+	}
+
+	// Find the next card to deal
+	while (fNextCardToDeal < 4 && !fCardsToAnimate[fNextCardToDeal]) {
+		fNextCardToDeal++;
+	}
+
+	if (fNextCardToDeal >= 4) {
+		fIsDealing = false;
+		return;
+	}
+
+	Card* card = fRoom->GetCard(fNextCardToDeal);
+	if (card != NULL) {
+		// Play deal sound
+		SoundPlayer::Instance()->PlaySound(SFX_DEAL_CARD);
+
+		// Calculate start position (deck position in our coordinate system)
+		BPoint startPos = fDeckPosition;
+		// Convert from window coordinates to our coordinates
+		if (Parent() != NULL) {
+			startPos.x -= Frame().left;
+			startPos.y -= Frame().top;
+		}
+
+		// Start the card animation
+		fCardViews[fNextCardToDeal]->SetCardWithAnimation(card, startPos, 0.2f);
+
+		// Start animation timer if not already running
+		if (fAnimationRunner == NULL) {
+			BMessage animMsg(kMsgAnimationTick);
+			fAnimationRunner = new BMessageRunner(BMessenger(this), &animMsg,
+				kAnimationInterval, -1); // -1 = infinite
+		}
+	}
+
+	fCardsToAnimate[fNextCardToDeal] = false;
+	fNextCardToDeal++;
+
+	// Schedule next card deal
+	bool moreCards = false;
+	for (int i = fNextCardToDeal; i < 4; i++) {
+		if (fCardsToAnimate[i]) {
+			moreCards = true;
+			break;
+		}
+	}
+
+	if (moreCards) {
+		delete fDealRunner;
+		BMessage dealMsg(kMsgDealNextCard);
+		fDealRunner = new BMessageRunner(BMessenger(this), &dealMsg, kDealDelay, 1);
+	}
+}
+
+
+void
+RoomView::UpdateAnimations()
+{
+	bool anyAnimating = false;
+
+	for (int i = 0; i < 4; i++) {
+		if (fCardViews[i]->IsAnimating()) {
+			fCardViews[i]->UpdateAnimation();
+			anyAnimating = true;
+		}
+	}
+
+	// Stop animation timer if no cards are animating
+	if (!anyAnimating) {
+		delete fAnimationRunner;
+		fAnimationRunner = NULL;
+
+		// Check if we're done dealing
+		bool moreToDeal = false;
+		for (int i = 0; i < 4; i++) {
+			if (fCardsToAnimate[i]) {
+				moreToDeal = true;
+				break;
+			}
+		}
+		if (!moreToDeal) {
+			fIsDealing = false;
+		}
+	}
 }

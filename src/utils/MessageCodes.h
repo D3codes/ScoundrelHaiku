@@ -34,4 +34,8 @@ const uint32 kMsgCloseModal = 'CLSM';
 // Sound messages
 const uint32 kMsgToggleSound = 'TSND';
 
+// Animation messages
+const uint32 kMsgAnimationTick = 'ANTK';
+const uint32 kMsgDealNextCard = 'DEAL';
+
 #endif // MESSAGE_CODES_H
