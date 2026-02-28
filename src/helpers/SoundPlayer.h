@@ -32,6 +32,7 @@ struct SoundCacheEntry {
 #define SFX_GAMEOVER		"gameover"
 #define SFX_PAGE			"page"
 #define SFX_PAGE2			"page2"
+#define SFX_GLASS_BREAK		"glassbreaking"
 
 class SoundPlayer {
 public:

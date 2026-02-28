@@ -30,10 +30,11 @@ public:
 	int					CardCount() const;
 	bool				IsEmpty() const;
 
-	bool				CanFlee() const { return fCanFlee; }
+	bool				CanFlee() const { return fCanFlee && !fHasInteracted; }
 	bool				UsedHealthPotion() const { return fUsedHealthPotion; }
 	void				SetUsedHealthPotion(bool used) { fUsedHealthPotion = used; }
 	bool				PlayerFled() const { return fPlayerFled; }
+	void				SetHasInteracted(bool interacted) { fHasInteracted = interacted; }
 
 	CardDestination		GetDestination(int index) const;
 
@@ -48,6 +49,7 @@ private:
 	bool				fCanFlee;
 	bool				fUsedHealthPotion;
 	bool				fPlayerFled;
+	bool				fHasInteracted;
 };
 
 #endif // ROOM_H

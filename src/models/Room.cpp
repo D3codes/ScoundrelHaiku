@@ -6,7 +6,8 @@ Room::Room()
 	:
 	fCanFlee(true),
 	fUsedHealthPotion(false),
-	fPlayerFled(false)
+	fPlayerFled(false),
+	fHasInteracted(false)
 {
 	for (int i = 0; i < kRoomSize; i++) {
 		fCards[i] = NULL;
@@ -19,7 +20,8 @@ Room::Room(const BMessage* archive)
 	:
 	fCanFlee(true),
 	fUsedHealthPotion(false),
-	fPlayerFled(false)
+	fPlayerFled(false),
+	fHasInteracted(false)
 {
 	for (int i = 0; i < kRoomSize; i++) {
 		fCards[i] = NULL;
@@ -43,6 +45,8 @@ Room::Room(const BMessage* archive)
 		fUsedHealthPotion = value;
 	if (archive->FindBool("playerFled", &value) == B_OK)
 		fPlayerFled = value;
+	if (archive->FindBool("hasInteracted", &value) == B_OK)
+		fHasInteracted = value;
 
 	SetDestinations();
 }
@@ -69,6 +73,7 @@ Room::Reset(Deck* deck)
 	fCanFlee = true;
 	fUsedHealthPotion = false;
 	fPlayerFled = false;
+	fHasInteracted = false;
 
 	DealCards(deck);
 }
@@ -80,7 +85,8 @@ Room::NextRoom(Deck* deck, bool fledLastRoom)
 	// Can't flee if just fled
 	fCanFlee = !fledLastRoom;
 	fUsedHealthPotion = false;
-	fPlayerFled = false;  // Reset for new room
+	fPlayerFled = false;
+	fHasInteracted = false;
 
 	DealCards(deck);
 }
@@ -217,6 +223,8 @@ Room::Archive(BMessage* archive) const
 		status = archive->AddBool("usedHealthPotion", fUsedHealthPotion);
 	if (status == B_OK)
 		status = archive->AddBool("playerFled", fPlayerFled);
+	if (status == B_OK)
+		status = archive->AddBool("hasInteracted", fHasInteracted);
 
 	return status;
 }

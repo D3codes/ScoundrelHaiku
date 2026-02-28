@@ -123,6 +123,7 @@ Game::EquipWeapon(int cardIndex)
 	if (card == NULL || card->Suit() != kSuitWeapon)
 		return;
 
+	fRoom.SetHasInteracted(true);
 	SoundPlayer::Instance()->PlayRandomEquip();
 	fPlayer.EquipWeapon(card->Strength());
 	NotifyPlayerUpdated();
@@ -138,6 +139,8 @@ Game::UseHealthPotion(int cardIndex)
 	if (card == NULL || card->Suit() != kSuitHealthPotion)
 		return;
 
+	fRoom.SetHasInteracted(true);
+
 	// Check for perfect health bonus
 	if (fPlayer.Health() == kMaxHealth) {
 		// Already at full health - gain bonus points instead
@@ -148,8 +151,10 @@ Game::UseHealthPotion(int cardIndex)
 		fPlayer.UseHealthPotion(card->Strength());
 		fRoom.SetUsedHealthPotion(true);
 		SoundPlayer::Instance()->PlaySound(SFX_SPARKLE);
+	} else {
+		// Potion already used - play glass breaking sound
+		SoundPlayer::Instance()->PlaySound(SFX_GLASS_BREAK);
 	}
-	// If potion already used this room, card is just discarded (no sound in iOS)
 
 	NotifyPlayerUpdated();
 	EndAction(cardIndex);
@@ -163,6 +168,7 @@ Game::AttackMonster(int cardIndex, bool attackUnarmed)
 	if (card == NULL || card->Suit() != kSuitMonster)
 		return;
 
+	fRoom.SetHasInteracted(true);
 	int monsterStrength = card->Strength();
 	bool withWeapon = !attackUnarmed && fPlayer.CanAttackWithWeapon(monsterStrength);
 

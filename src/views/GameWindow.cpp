@@ -112,7 +112,12 @@ GameWindow::MessageReceived(BMessage* message)
 			break;
 
 		case kMsgMainMenu:
-			SaveManager::Instance()->SaveGame(&fGame);
+			// Don't save if game is over - delete save instead
+			if (fGame.State() == kGameStateGameOver) {
+				SaveManager::Instance()->DeleteSavedGame();
+			} else {
+				SaveManager::Instance()->SaveGame(&fGame);
+			}
 			ShowMainMenu();
 			break;
 
