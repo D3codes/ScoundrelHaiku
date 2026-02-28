@@ -37,5 +37,6 @@ const uint32 kMsgToggleSound = 'TSND';
 // Animation messages
 const uint32 kMsgAnimationTick = 'ANTK';
 const uint32 kMsgDealNextCard = 'DEAL';
+const uint32 kMsgDeckCountChanged = 'DKCT';
 
 #endif // MESSAGE_CODES_H

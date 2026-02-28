@@ -23,6 +23,9 @@ public:
 	void				PrepareFleeAnimation();
 	void				RandomizeBackground();
 	void				ClearRoom();
+	void				AdjustVisualDeckCount(int delta);
+	void				SetVisualDeckCount(int count);
+	int					GetActualDeckCount();
 
 private:
 	TopBarView*			fTopBarView;

@@ -1,5 +1,6 @@
 #include "RoomView.h"
 #include "CardView.h"
+#include "GameBoardView.h"
 #include "models/Room.h"
 #include "models/Card.h"
 #include "helpers/ResourceLoader.h"
@@ -449,7 +450,8 @@ RoomView::RefreshWithAnimation()
 		fFleeAnimationPending = false;
 		fIsFleeing = true;
 
-		// Hide all CardViews and start flee animations
+		// Count fleeing cards and hide CardViews
+		int fleeingCardCount = 0;
 		bool anyFleeing = false;
 		for (int i = 0; i < 4; i++) {
 			if (fFleeAnimations[i].card != NULL) {
@@ -461,11 +463,13 @@ RoomView::RefreshWithAnimation()
 				if (!fCardViews[i]->IsHidden())
 					fCardViews[i]->Hide();
 
+				fleeingCardCount++;
 				anyFleeing = true;
 			}
 		}
 
 		// Set up deal animations for later (after flee completes)
+		int dealCardCount = 0;
 		fNextCardToDeal = -1;
 		for (int i = 0; i < 4; i++) {
 			Card* roomCard = fRoom->GetCard(i);
@@ -481,11 +485,23 @@ RoomView::RefreshWithAnimation()
 				fAnimations[i].startScale = 0.3f;
 				fAnimations[i].endScale = 1.0f;
 
+				dealCardCount++;
 				if (fNextCardToDeal < 0)
 					fNextCardToDeal = i;
 			} else {
 				fAnimations[i].card = NULL;
 			}
+		}
+
+		// Set visual deck count for flee animation
+		// Cards are already back in deck, but we want to show them returning
+		// Then we'll deal new cards from the deck
+		GameBoardView* gameBoard = dynamic_cast<GameBoardView*>(Parent());
+		if (gameBoard != NULL) {
+			// Actual count already includes returned cards and excludes dealt cards
+			// We want: visual = actual - fleeing (cards still animating to deck) + deal (cards not yet dealt)
+			int actualCount = gameBoard->GetActualDeckCount();
+			SetVisualDeckCount(actualCount - fleeingCardCount + dealCardCount);
 		}
 
 		if (anyFleeing) {
@@ -538,6 +554,16 @@ RoomView::RefreshWithAnimation()
 
 	if (fNextCardToDeal >= 0) {
 		fIsDealing = true;
+
+		// Set visual deck count to show cards before dealing
+		// (actual count + cards about to be dealt)
+		int cardsToAnimate = CountCardsToAnimate();
+		GameBoardView* gameBoard = dynamic_cast<GameBoardView*>(Parent());
+		if (gameBoard != NULL) {
+			int actualCount = gameBoard->GetActualDeckCount();
+			SetVisualDeckCount(actualCount + cardsToAnimate);
+		}
+
 		DealNextCard();
 	}
 
@@ -578,8 +604,9 @@ RoomView::DealNextCard()
 		return;
 	}
 
-	// Play deal sound
+	// Play deal sound and decrement visual deck count
 	SoundPlayer::Instance()->PlaySound(SFX_DEAL_CARD);
+	AdjustVisualDeckCount(-1);
 
 	// Start this card's animation
 	fAnimations[fNextCardToDeal].active = true;
@@ -628,6 +655,8 @@ RoomView::UpdateAnimations()
 				if (fFleeAnimations[i].progress >= 1.0f) {
 					fFleeAnimations[i].progress = 1.0f;
 					fFleeAnimations[i].active = false;
+					// Card returned to deck - increment visual count
+					AdjustVisualDeckCount(1);
 				} else {
 					anyFleeing = true;
 				}
@@ -678,6 +707,41 @@ RoomView::UpdateAnimations()
 		}
 		if (!moreToDeal) {
 			fIsDealing = false;
+			// Sync visual deck count with actual count after all animations
+			GameBoardView* gameBoard = dynamic_cast<GameBoardView*>(Parent());
+			if (gameBoard != NULL) {
+				SetVisualDeckCount(gameBoard->GetActualDeckCount());
+			}
 		}
 	}
+}
+
+
+void
+RoomView::AdjustVisualDeckCount(int delta)
+{
+	GameBoardView* gameBoard = dynamic_cast<GameBoardView*>(Parent());
+	if (gameBoard != NULL)
+		gameBoard->AdjustVisualDeckCount(delta);
+}
+
+
+void
+RoomView::SetVisualDeckCount(int count)
+{
+	GameBoardView* gameBoard = dynamic_cast<GameBoardView*>(Parent());
+	if (gameBoard != NULL)
+		gameBoard->SetVisualDeckCount(count);
+}
+
+
+int
+RoomView::CountCardsToAnimate()
+{
+	int count = 0;
+	for (int i = 0; i < 4; i++) {
+		if (fAnimations[i].card != NULL)
+			count++;
+	}
+	return count;
 }

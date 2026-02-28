@@ -196,3 +196,28 @@ GameBoardView::ClearRoom()
 	if (fRoomView != NULL)
 		fRoomView->ClearAllCards();
 }
+
+
+void
+GameBoardView::AdjustVisualDeckCount(int delta)
+{
+	if (fTopBarView != NULL)
+		fTopBarView->AdjustVisualDeckCount(delta);
+}
+
+
+void
+GameBoardView::SetVisualDeckCount(int count)
+{
+	if (fTopBarView != NULL)
+		fTopBarView->SetVisualDeckCount(count);
+}
+
+
+int
+GameBoardView::GetActualDeckCount()
+{
+	if (fGame != NULL && fGame->GetDeck() != NULL)
+		return fGame->GetDeck()->CardsRemaining();
+	return 0;
+}

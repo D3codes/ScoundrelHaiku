@@ -47,6 +47,9 @@ private:
 	void				DrawAnimatingCard(CardAnimation& anim);
 	float				EaseOutCubic(float t);
 	BPoint				GetCardCenterPosition(int index);
+	void				AdjustVisualDeckCount(int delta);
+	void				SetVisualDeckCount(int count);
+	int					CountCardsToAnimate();
 
 	CardView*			fCardViews[4];
 	Room*				fRoom;

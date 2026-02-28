@@ -106,7 +106,8 @@ TopBarView::TopBarView(BRect frame)
 	:
 	BView(frame, "topBarView", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP,
 		B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
-	fGame(NULL)
+	fGame(NULL),
+	fVisualDeckCount(0)
 {
 	// Solid color fallback - Draw() will paint over it
 	SetViewColor(70, 70, 90);
@@ -194,10 +195,9 @@ TopBarView::Draw(BRect updateRect)
 	float startX = leftEdge + (availableWidth - totalBoxesWidth) / 2;
 	float boxY = 15;
 
-	// Draw deck icon box
+	// Draw deck icon box (use visual count for animation sync)
 	BRect deckBoxRect(startX, boxY, startX + iconBoxSize, boxY + iconBoxSize);
-	DrawIconBox(deckBoxRect, "deck",
-		fGame != NULL ? fGame->GetDeck()->CardsRemaining() : 0);
+	DrawIconBox(deckBoxRect, "deck", fVisualDeckCount);
 
 	// Draw score box (wider) - centered
 	float scoreX = deckBoxRect.right + spacing;
@@ -301,9 +301,29 @@ TopBarView::DrawScoreBox(BRect boxRect)
 
 
 void
+TopBarView::MessageReceived(BMessage* message)
+{
+	switch (message->what) {
+		case kMsgDeckCountChanged:
+		{
+			int32 delta;
+			if (message->FindInt32("delta", &delta) == B_OK) {
+				AdjustVisualDeckCount(delta);
+			}
+			break;
+		}
+		default:
+			BView::MessageReceived(message);
+			break;
+	}
+}
+
+
+void
 TopBarView::SetGame(Game* game)
 {
 	fGame = game;
+	SyncVisualDeckCount();
 	Refresh();
 }
 
@@ -320,4 +340,33 @@ TopBarView::Refresh()
 		fleeBtn->SetEnabled(fGame->GetRoom()->CanFlee());
 
 	Invalidate();
+}
+
+
+void
+TopBarView::SetVisualDeckCount(int count)
+{
+	fVisualDeckCount = count;
+	Invalidate();
+}
+
+
+void
+TopBarView::AdjustVisualDeckCount(int delta)
+{
+	fVisualDeckCount += delta;
+	if (fVisualDeckCount < 0)
+		fVisualDeckCount = 0;
+	Invalidate();
+}
+
+
+void
+TopBarView::SyncVisualDeckCount()
+{
+	// Sync visual count with actual deck count
+	if (fGame != NULL)
+		fVisualDeckCount = fGame->GetDeck()->CardsRemaining();
+	else
+		fVisualDeckCount = 0;
 }

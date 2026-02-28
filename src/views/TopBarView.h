@@ -12,9 +12,13 @@ public:
 
 	virtual void		Draw(BRect updateRect);
 	virtual void		AttachedToWindow();
+	virtual void		MessageReceived(BMessage* message);
 
 	void				SetGame(Game* game);
 	void				Refresh();
+	void				SetVisualDeckCount(int count);
+	void				AdjustVisualDeckCount(int delta);
+	void				SyncVisualDeckCount();
 
 private:
 	void				DrawIconBox(BRect boxRect, const char* iconName, int value);
@@ -24,6 +28,7 @@ private:
 	BView*				fFleeButton;
 
 	Game*				fGame;
+	int					fVisualDeckCount;
 };
 
 #endif // TOP_BAR_VIEW_H
