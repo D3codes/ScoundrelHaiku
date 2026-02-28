@@ -400,19 +400,20 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 	float buttonAreaHeight = 55;
 
 	// Scroll view leaves room for button at bottom
-	float scrollWidth = bounds.Width() - B_V_SCROLL_BAR_WIDTH;
 	float scrollHeight = bounds.Height() - buttonAreaHeight;
+	float contentWidth = bounds.Width() - B_V_SCROLL_BAR_WIDTH - 1;
 
-	// Content height for all text content (UI section ends around y=1270)
-	float contentHeight = 1300;
-	BRect contentRect(0, 0, scrollWidth - 1, contentHeight);
-
+	// Create content view at VISIBLE size initially
+	BRect contentRect(0, 0, contentWidth, scrollHeight);
 	HowToPlayContentView* contentView = new HowToPlayContentView(contentRect);
 
+	// Create scroll view - it adopts the content's frame (visible size)
 	BScrollView* scrollView = new BScrollView("scrollView", contentView,
 		B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP, 0, false, true, B_NO_BORDER);
-	scrollView->ResizeTo(bounds.Width(), scrollHeight);
 	AddChild(scrollView);
+
+	// Now resize content to full scrollable height (content ends around y=1270)
+	contentView->ResizeTo(contentWidth, 1300);
 
 	// Create a background view for button area that matches parchment
 	BView* buttonBgView = new BView(
