@@ -122,8 +122,15 @@ ResourceLoader::GetGlyph(const char* glyphName)
 BBitmap*
 ResourceLoader::GetUIImage(const char* uiImageName)
 {
+	// Try .png first
 	BString fullPath;
 	fullPath.SetToFormat("images/ui/%s.png", uiImageName);
+	BBitmap* bitmap = LoadBitmap(fullPath.String());
+	if (bitmap != NULL)
+		return bitmap;
+
+	// Try .jpg as fallback
+	fullPath.SetToFormat("images/ui/%s.jpg", uiImageName);
 	return LoadBitmap(fullPath.String());
 }
 

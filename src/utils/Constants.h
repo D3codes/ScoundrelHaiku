@@ -12,9 +12,9 @@ const float kWindowWidth = 400.0f;
 const float kWindowHeight = 600.0f;
 
 // Card dimensions
-const float kCardWidth = 80.0f;
-const float kCardHeight = 120.0f;
-const float kCardSpacing = 10.0f;
+const float kCardWidth = 105.0f;
+const float kCardHeight = 155.0f;
+const float kCardSpacing = 12.0f;
 
 // Room layout
 const float kRoomPadding = 20.0f;

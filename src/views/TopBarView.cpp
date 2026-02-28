@@ -177,13 +177,21 @@ TopBarView::Draw(BRect updateRect)
 	StrokeLine(BPoint(bounds.left, bounds.bottom - 1),
 		BPoint(bounds.right, bounds.bottom - 1));
 
-	// Calculate positions for icon boxes
+	// Calculate positions for icon boxes - centered between buttons
 	float iconBoxSize = 50;
 	float buttonSize = 50;
 	float padding = 10;
 	float spacing = 8;
+	float scoreBoxWidth = 80;
 
-	float startX = padding + buttonSize + spacing;
+	// Total width of all three boxes
+	float totalBoxesWidth = iconBoxSize + spacing + scoreBoxWidth + spacing + iconBoxSize;
+
+	// Center the boxes between pause and flee buttons
+	float leftEdge = padding + buttonSize + spacing;
+	float rightEdge = bounds.Width() - padding - buttonSize - spacing;
+	float availableWidth = rightEdge - leftEdge;
+	float startX = leftEdge + (availableWidth - totalBoxesWidth) / 2;
 	float boxY = 15;
 
 	// Draw deck icon box
@@ -191,8 +199,7 @@ TopBarView::Draw(BRect updateRect)
 	DrawIconBox(deckBoxRect, "deck",
 		fGame != NULL ? fGame->GetDeck()->CardsRemaining() : 0);
 
-	// Draw score box (wider)
-	float scoreBoxWidth = 80;
+	// Draw score box (wider) - centered
 	float scoreX = deckBoxRect.right + spacing;
 	BRect scoreBoxRect(scoreX, boxY, scoreX + scoreBoxWidth, boxY + iconBoxSize);
 	DrawScoreBox(scoreBoxRect);

@@ -11,26 +11,14 @@
 class HowToPlayContentView : public BView {
 public:
 	HowToPlayContentView(BRect frame)
-		: BView(frame, "howToContent", B_FOLLOW_ALL,
-			B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE | B_FRAME_EVENTS)
+		: BView(frame, "howToContent", B_FOLLOW_ALL, B_WILL_DRAW)
 	{
-		// Use solid color to prevent scroll artifacts
-		SetViewColor(kCardBackgroundColor);
+		// Use parchment-like color for clean scrolling
+		SetViewColor(222, 210, 190);
 	}
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
-
-		// Always fill with solid background first to prevent artifacts
-		SetHighColor(kCardBackgroundColor);
-		FillRect(bounds);
-
-		// Draw paper background on top
-		BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
-		if (paperBg != NULL) {
-			SetDrawingMode(B_OP_COPY);
-			DrawBitmap(paperBg, paperBg->Bounds(), bounds);
-		}
 
 		// Draw all the text content
 		float y = 50;
@@ -390,24 +378,10 @@ private:
 class ButtonAreaView : public BView {
 public:
 	ButtonAreaView(BRect frame)
-		: BView(frame, "buttonArea", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM, B_WILL_DRAW)
+		: BView(frame, "buttonArea", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM, 0)
 	{
-		SetViewColor(kCardBackgroundColor);
-	}
-
-	virtual void Draw(BRect updateRect) {
-		BRect bounds = Bounds();
-
-		// Fill with solid background first
-		SetHighColor(kCardBackgroundColor);
-		FillRect(bounds);
-
-		// Draw paper background to match content
-		BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
-		if (paperBg != NULL) {
-			SetDrawingMode(B_OP_COPY);
-			DrawBitmap(paperBg, paperBg->Bounds(), bounds);
-		}
+		// Match the content view parchment color
+		SetViewColor(222, 210, 190);
 	}
 };
 
