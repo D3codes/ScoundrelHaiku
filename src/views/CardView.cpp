@@ -5,16 +5,27 @@
 #include "utils/MessageCodes.h"
 
 #include <Bitmap.h>
+#include <String.h>
 #include <Window.h>
 
 CardView::CardView(BRect frame, int32 index)
 	:
 	BView(frame, "cardView", B_FOLLOW_NONE, B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
 	fIndex(index),
-	fCard(NULL)
+	fCard(NULL),
+	fBackgroundIndex(1)
 {
 	// Transparent to allow dungeon background to show around cards
 	SetViewColor(B_TRANSPARENT_COLOR);
+}
+
+
+void
+CardView::SetBackgroundIndex(int index)
+{
+	fBackgroundIndex = index;
+	if (fCard == NULL)
+		Invalidate();
 }
 
 
@@ -54,8 +65,53 @@ CardView::Draw(BRect updateRect)
 void
 CardView::DrawEmptySlot()
 {
-	// Don't draw anything - let the background show through
-	// The view is already set to B_TRANSPARENT_COLOR
+	// Draw the dungeon background portion for this card's area
+	// This is needed because parent views are clipped and don't draw under children
+	BRect bounds = Bounds();
+
+	if (Parent() == NULL || Parent()->Parent() == NULL)
+		return;
+
+	// Get background index from parent RoomView
+	// For now, just draw a portion of dungeon1 - the RoomView will set background
+	BView* roomView = Parent();
+	BView* gameBoard = roomView->Parent();
+
+	// Get the background bitmap
+	BString bgName;
+	bgName.SetToFormat("dungeon%d", fBackgroundIndex);
+	BBitmap* background = ResourceLoader::Instance()->GetBackground(bgName.String());
+
+	if (background != NULL) {
+		// Calculate our position relative to the game board
+		BRect gameBoardBounds = gameBoard->Bounds();
+		BRect srcRect = background->Bounds();
+
+		// Scale factors
+		float scaleX = srcRect.Width() / gameBoardBounds.Width();
+		float scaleY = srcRect.Height() / gameBoardBounds.Height();
+
+		// Our position in the game board
+		BPoint roomPos = roomView->Frame().LeftTop();
+		BPoint cardPos = Frame().LeftTop();
+		float totalX = roomPos.x + cardPos.x;
+		float totalY = roomPos.y + cardPos.y;
+
+		// Calculate source rect for this card's area
+		BRect ourSrcRect(
+			totalX * scaleX,
+			totalY * scaleY,
+			(totalX + bounds.Width()) * scaleX,
+			(totalY + bounds.Height()) * scaleY
+		);
+
+		SetDrawingMode(B_OP_COPY);
+		DrawBitmap(background, ourSrcRect, bounds);
+	} else {
+		// Fallback: fill with background color
+		SetHighColor(kBackgroundColor);
+		FillRect(bounds);
+	}
 }
 
 

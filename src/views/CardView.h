@@ -15,6 +15,7 @@ public:
 
 	void				SetCard(Card* card);
 	void				ClearCard();
+	void				SetBackgroundIndex(int index);
 	int32				Index() const { return fIndex; }
 
 private:
@@ -23,6 +24,7 @@ private:
 
 	int32				fIndex;
 	Card*				fCard;
+	int					fBackgroundIndex;
 };
 
 #endif // CARD_VIEW_H

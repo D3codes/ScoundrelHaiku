@@ -99,6 +99,10 @@ void
 RoomView::SetBackgroundIndex(int index)
 {
 	fBackgroundIndex = index;
+	// Update all card views with the new background index
+	for (int i = 0; i < 4; i++) {
+		fCardViews[i]->SetBackgroundIndex(index);
+	}
 	Invalidate();
 }
 
