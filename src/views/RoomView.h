@@ -36,6 +36,7 @@ public:
 	void				Refresh();
 	void				RefreshWithAnimation();
 	void				PrepareFleeAnimation();
+	void				ClearAllCards();
 	bool				IsDealing() const { return fIsDealing; }
 	bool				IsFleeing() const { return fIsFleeing; }
 

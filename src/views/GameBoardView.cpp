@@ -188,3 +188,11 @@ GameBoardView::PrepareFleeAnimation()
 	if (fRoomView != NULL)
 		fRoomView->PrepareFleeAnimation();
 }
+
+
+void
+GameBoardView::ClearRoom()
+{
+	if (fRoomView != NULL)
+		fRoomView->ClearAllCards();
+}

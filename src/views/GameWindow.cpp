@@ -93,10 +93,11 @@ GameWindow::MessageReceived(BMessage* message)
 {
 	switch (message->what) {
 		case kMsgNewGame:
-			fGame.NewGame();
 			SaveManager::Instance()->DeleteSavedGame();
 			fGameBoardView->RandomizeBackground();
-			ShowGameBoard();
+			fGameBoardView->ClearRoom();  // Clear any existing cards
+			ShowGameBoard();  // Show empty board first
+			fGame.NewGame();  // Then start game (triggers deal animation)
 			break;
 
 		case kMsgResumeGame:

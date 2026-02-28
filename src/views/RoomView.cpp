@@ -375,6 +375,19 @@ RoomView::Refresh()
 
 
 void
+RoomView::ClearAllCards()
+{
+	// Clear all card views and hide them (for starting fresh before animation)
+	for (int i = 0; i < 4; i++) {
+		fCardViews[i]->ClearCard();
+		if (!fCardViews[i]->IsHidden())
+			fCardViews[i]->Hide();
+	}
+	Invalidate();
+}
+
+
+void
 RoomView::PrepareFleeAnimation()
 {
 	// Capture current cards for flee animation

@@ -22,6 +22,7 @@ public:
 	void				RefreshWithAnimation();
 	void				PrepareFleeAnimation();
 	void				RandomizeBackground();
+	void				ClearRoom();
 
 private:
 	TopBarView*			fTopBarView;
