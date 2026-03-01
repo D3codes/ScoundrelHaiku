@@ -233,12 +233,12 @@ RoomView::DrawAnimatingCard(CardAnimation& anim)
 	BBitmap* cardImage = ResourceLoader::Instance()->GetCardImage(
 		anim.card->GetImageName().String());
 
-	float bottomAreaHeight = 45 * scale;
+	float bottomAreaHeight = 38 * scale;
 	float imageAreaHeight = cardRect.Height() - bottomAreaHeight;
 
 	if (cardImage != NULL) {
 		BRect imageRect = cardImage->Bounds();
-		float padding = 10 * scale;
+		float padding = 8 * scale;
 		float availWidth = cardRect.Width() - padding * 2;
 		float availHeight = imageAreaHeight - padding * 2;
 
@@ -253,17 +253,19 @@ RoomView::DrawAnimatingCard(CardAnimation& anim)
 
 		BRect destRect(imageX, imageY, imageX + imageWidth, imageY + imageHeight);
 
-		float imageRadius = 8 * scale;
-		SetHighColor(kCardBackgroundColor);
-		FillRoundRect(destRect, imageRadius, imageRadius);
+		float imageRadius = 12 * scale;
 
-		BRect insetDestRect = destRect.InsetByCopy(2 * scale, 2 * scale);
+		// Draw image first, inset enough to hide sharp corners under the rounded border
+		BRect insetDestRect = destRect.InsetByCopy(4 * scale, 4 * scale);
 		SetDrawingMode(B_OP_ALPHA);
 		DrawBitmap(cardImage, imageRect, insetDestRect);
 		SetDrawingMode(B_OP_COPY);
 
+		// Draw rounded border frame that covers image corners
 		SetHighColor(160, 150, 130);
+		SetPenSize(4 * scale);
 		StrokeRoundRect(destRect, imageRadius, imageRadius);
+		SetPenSize(1);
 	} else {
 		// Fallback: draw icon
 		BBitmap* icon = ResourceLoader::Instance()->GetGlyph(
@@ -282,12 +284,12 @@ RoomView::DrawAnimatingCard(CardAnimation& anim)
 	}
 
 	// Draw suit icon and strength at bottom
-	float iconSize = 24 * scale;
+	float iconSize = 32 * scale;
 	BBitmap* suitIcon = ResourceLoader::Instance()->GetGlyph(
 		anim.card->GetIconName().String());
 
 	BFont font;
-	font.SetSize(24 * scale);
+	font.SetSize(28 * scale);
 	font.SetFace(B_BOLD_FACE);
 	SetFont(&font);
 
@@ -295,10 +297,10 @@ RoomView::DrawAnimatingCard(CardAnimation& anim)
 	strengthStr.SetToFormat("%d", anim.card->Strength());
 	float textWidth = StringWidth(strengthStr.String());
 
-	float spacing = 8 * scale;
+	float spacing = 6 * scale;
 	float totalWidth = iconSize + spacing + textWidth;
 	float startX = cardRect.left + (cardRect.Width() - totalWidth) / 2;
-	float bottomY = cardRect.bottom - 12 * scale;
+	float bottomY = cardRect.bottom - 4 * scale;
 
 	if (suitIcon != NULL) {
 		SetDrawingMode(B_OP_ALPHA);
@@ -310,7 +312,7 @@ RoomView::DrawAnimatingCard(CardAnimation& anim)
 
 	SetHighColor(0, 0, 0);
 	DrawString(strengthStr.String(),
-		BPoint(startX + iconSize + spacing, bottomY - 3 * scale));
+		BPoint(startX + iconSize + spacing, bottomY - 5 * scale));
 }
 
 

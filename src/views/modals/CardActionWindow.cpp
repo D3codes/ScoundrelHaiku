@@ -150,23 +150,21 @@ public:
 			BRect destRect(imageX, imageY, imageX + imageWidth, imageY + imageHeight);
 			float imageRadius = 12;
 
-			// Draw rounded background for image
-			SetHighColor(kCardBackgroundColor);
-			FillRoundRect(destRect, imageRadius, imageRadius);
-
-			// Draw image
-			BRect insetDestRect = destRect.InsetByCopy(2, 2);
+			// Draw image first, inset enough to hide sharp corners under the rounded border
+			BRect insetDestRect = destRect.InsetByCopy(4, 4);
 			SetDrawingMode(B_OP_ALPHA);
 			DrawBitmap(cardImage, imageRect, insetDestRect);
 			SetDrawingMode(B_OP_COPY);
 
-			// Draw rounded border around image
+			// Draw rounded border frame that covers image corners
 			SetHighColor(160, 150, 130);
+			SetPenSize(4);
 			StrokeRoundRect(destRect, imageRadius, imageRadius);
+			SetPenSize(1);
 		}
 
 		// Draw icon and strength at bottom of card
-		float iconSize = 26;
+		float iconSize = 28;
 		BBitmap* icon = ResourceLoader::Instance()->GetGlyph(
 			fCard->GetIconName().String());
 
@@ -174,27 +172,27 @@ public:
 		strengthStr.SetToFormat("%d", fCard->Strength());
 
 		BFont font;
-		font.SetSize(22);
+		font.SetSize(24);
 		font.SetFace(B_BOLD_FACE);
 		SetFont(&font);
 
 		float textWidth = StringWidth(strengthStr.String());
 		float contentWidth = iconSize + 6 + textWidth;
 		float startX = cardRect.left + (cardRect.Width() - contentWidth) / 2;
-		float bottomY = cardRect.bottom - 8;
+		float bottomY = cardRect.bottom - 6;
 
 		if (icon != NULL) {
 			BRect iconRect = icon->Bounds();
-			BRect destRect(startX, bottomY - iconSize,
+			BRect destIconRect(startX, bottomY - iconSize,
 				startX + iconSize, bottomY);
 			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(icon, iconRect, destRect);
+			DrawBitmap(icon, iconRect, destIconRect);
 			SetDrawingMode(B_OP_COPY);
 			startX += iconSize + 6;
 		}
 
 		SetHighColor(kDarkTextColor);
-		DrawString(strengthStr.String(), BPoint(startX, bottomY - 4));
+		DrawString(strengthStr.String(), BPoint(startX, bottomY - 5));
 	}
 
 private:
