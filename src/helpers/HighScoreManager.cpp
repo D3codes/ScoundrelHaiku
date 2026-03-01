@@ -26,7 +26,7 @@ HighScoreManager::Instance()
 
 HighScoreManager::HighScoreManager()
 	:
-	fScores(20, true)
+	fScores(15, true)
 {
 }
 
@@ -59,8 +59,8 @@ HighScoreManager::AddScore(const char* name, int score, int dungeonsBeaten)
 	if (!inserted)
 		fScores.AddItem(entry);
 
-	// Keep only top 20 scores
-	while (fScores.CountItems() > 20) {
+	// Keep only top 15 scores
+	while (fScores.CountItems() > 15) {
 		fScores.RemoveItemAt(fScores.CountItems() - 1);
 	}
 
@@ -105,6 +105,19 @@ HighScoreManager::GetLastUsedName()
 	if (fLastUsedName.Length() > 0)
 		return fLastUsedName.String();
 	return NULL;
+}
+
+
+bool
+HighScoreManager::IsHighScore(int score)
+{
+	// If we have fewer than 15 scores, any score qualifies
+	if (fScores.CountItems() < 15)
+		return true;
+
+	// Otherwise, check if this score beats the lowest
+	HighScoreEntry* lowest = fScores.ItemAt(fScores.CountItems() - 1);
+	return score > lowest->score;
 }
 
 

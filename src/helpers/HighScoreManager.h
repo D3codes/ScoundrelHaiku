@@ -20,6 +20,7 @@ public:
 	int							GetScoreCount();
 	HighScoreEntry*				GetScore(int index);
 	const char*					GetLastUsedName();
+	bool						IsHighScore(int score);
 
 	void						Load();
 	void						Save();

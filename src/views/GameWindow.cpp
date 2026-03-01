@@ -7,6 +7,7 @@
 #include "modals/HowToPlayWindow.h"
 #include "modals/HighScoresWindow.h"
 #include "modals/NameEntryWindow.h"
+#include "helpers/HighScoreManager.h"
 #include "helpers/SaveManager.h"
 #include "utils/Constants.h"
 #include "utils/MessageCodes.h"
@@ -285,8 +286,9 @@ GameWindow::ShowHighScores()
 void
 GameWindow::ShowNameEntry()
 {
+	bool isHighScore = HighScoreManager::Instance()->IsHighScore(fPendingScore);
 	NameEntryWindow* modal = new NameEntryWindow(this, fPendingScore,
-		fPendingDungeons);
+		fPendingDungeons, isHighScore);
 	modal->Show();
 }
 
