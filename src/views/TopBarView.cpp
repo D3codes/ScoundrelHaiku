@@ -77,15 +77,15 @@ public:
 
 		// Draw white slash over disabled button with drop shadow
 		if (!fEnabled) {
-			SetPenSize(4);
+			SetPenSize(5);
 			// Shadow
 			SetHighColor(0, 0, 0, 180);
-			StrokeLine(BPoint(bounds.left - 4 + 2, bounds.bottom + 4 + 2),
-				BPoint(bounds.right + 4 + 2, bounds.top - 4 + 2));
+			StrokeLine(BPoint(bounds.left - 8 + 2, bounds.bottom + 8 + 2),
+				BPoint(bounds.right + 8 + 2, bounds.top - 8 + 2));
 			// White slash
 			SetHighColor(255, 255, 255);
-			StrokeLine(BPoint(bounds.left - 4, bounds.bottom + 4),
-				BPoint(bounds.right + 4, bounds.top - 4));
+			StrokeLine(BPoint(bounds.left - 8, bounds.bottom + 8),
+				BPoint(bounds.right + 8, bounds.top - 8));
 			SetPenSize(1);
 		}
 	}
@@ -98,6 +98,12 @@ public:
 	void SetEnabled(bool enabled) {
 		if (fEnabled != enabled) {
 			fEnabled = enabled;
+			// Invalidate parent area too since slash extends outside our bounds
+			if (Parent() != NULL) {
+				BRect slashRect = Frame();
+				slashRect.InsetBy(-10, -10);
+				Parent()->Invalidate(slashRect);
+			}
 			Invalidate();
 		}
 	}
