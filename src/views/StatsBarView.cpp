@@ -5,7 +5,6 @@
 
 #include <Bitmap.h>
 #include <String.h>
-#include <ToolTip.h>
 #include <Window.h>
 
 
@@ -196,11 +195,21 @@ StatsBarView::GetSwordBoxRect()
 }
 
 
-bool
-StatsBarView::GetToolTipAt(BPoint point, BToolTip** _tip)
+void
+StatsBarView::MouseMoved(BPoint where, uint32 transit, const BMessage* dragMessage)
 {
-	if (fPlayer == NULL)
-		return false;
+	UpdateTooltipForPoint(where);
+	BView::MouseMoved(where, transit, dragMessage);
+}
+
+
+void
+StatsBarView::UpdateTooltipForPoint(BPoint point)
+{
+	if (fPlayer == NULL) {
+		SetToolTip((const char*)NULL);
+		return;
+	}
 
 	// Check if hovering over sword icon
 	BRect swordRect = GetSwordBoxRect();
@@ -213,9 +222,10 @@ StatsBarView::GetToolTipAt(BPoint point, BToolTip** _tip)
 		} else {
 			tipText = "No weapon equipped";
 		}
-		*_tip = new BTextToolTip(tipText.String());
-		return true;
+		SetToolTip(tipText.String());
+		return;
 	}
 
-	return false;
+	// Not over any icon, clear tooltip
+	SetToolTip((const char*)NULL);
 }

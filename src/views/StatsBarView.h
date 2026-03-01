@@ -12,7 +12,8 @@ public:
 	virtual				~StatsBarView();
 
 	virtual void		Draw(BRect updateRect);
-	virtual bool		GetToolTipAt(BPoint point, BToolTip** _tip);
+	virtual void		MouseMoved(BPoint where, uint32 transit,
+							const BMessage* dragMessage);
 
 	void				SetPlayer(Player* player);
 	void				Refresh();
@@ -22,6 +23,7 @@ private:
 	void				DrawProgressBar(BRect barRect, rgb_color fillColor,
 							float fillRatio);
 	BRect				GetSwordBoxRect();
+	void				UpdateTooltipForPoint(BPoint point);
 
 	Player*				fPlayer;
 };

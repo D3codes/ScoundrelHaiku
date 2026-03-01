@@ -6,7 +6,6 @@
 
 #include <Bitmap.h>
 #include <String.h>
-#include <ToolTip.h>
 #include <Window.h>
 
 
@@ -471,11 +470,21 @@ TopBarView::GetDungeonBoxRect()
 }
 
 
-bool
-TopBarView::GetToolTipAt(BPoint point, BToolTip** _tip)
+void
+TopBarView::MouseMoved(BPoint where, uint32 transit, const BMessage* dragMessage)
 {
-	if (fGame == NULL)
-		return false;
+	UpdateTooltipForPoint(where);
+	BView::MouseMoved(where, transit, dragMessage);
+}
+
+
+void
+TopBarView::UpdateTooltipForPoint(BPoint point)
+{
+	if (fGame == NULL) {
+		SetToolTip((const char*)NULL);
+		return;
+	}
 
 	// Check if hovering over deck icon
 	BRect deckRect = GetDeckBoxRect();
@@ -483,8 +492,8 @@ TopBarView::GetToolTipAt(BPoint point, BToolTip** _tip)
 		BString tipText;
 		int deckCount = fGame->GetDeck()->CardsRemaining();
 		tipText.SetToFormat("%d cards in deck", deckCount);
-		*_tip = new BTextToolTip(tipText.String());
-		return true;
+		SetToolTip(tipText.String());
+		return;
 	}
 
 	// Check if hovering over dungeon icon
@@ -493,9 +502,10 @@ TopBarView::GetToolTipAt(BPoint point, BToolTip** _tip)
 		BString tipText;
 		int dungeonsBeaten = fGame->DungeonDepth();
 		tipText.SetToFormat("%d dungeons beat", dungeonsBeaten);
-		*_tip = new BTextToolTip(tipText.String());
-		return true;
+		SetToolTip(tipText.String());
+		return;
 	}
 
-	return false;
+	// Not over any icon, clear tooltip
+	SetToolTip((const char*)NULL);
 }
