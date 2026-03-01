@@ -70,14 +70,18 @@ public:
 			// Text
 			SetHighColor(kTextColor);
 		} else {
-			SetHighColor(60, 60, 60);
+			// Disabled: black text
+			SetHighColor(0, 0, 0);
 		}
 		DrawString(fLabel.String(), BPoint(textX, textY));
 
-		// Draw disabled overlay - semi-transparent gray
+		// Draw white slash over disabled button
 		if (!fEnabled) {
-			SetHighColor(80, 80, 90, 180);
-			FillRoundRect(bounds, radius, radius);
+			SetHighColor(255, 255, 255);
+			SetPenSize(3);
+			StrokeLine(BPoint(bounds.left + 8, bounds.bottom - 8),
+				BPoint(bounds.right - 8, bounds.top + 8));
+			SetPenSize(1);
 		}
 	}
 
