@@ -75,12 +75,17 @@ public:
 		}
 		DrawString(fLabel.String(), BPoint(textX, textY));
 
-		// Draw white slash over disabled button
+		// Draw white slash over disabled button with drop shadow
 		if (!fEnabled) {
+			SetPenSize(4);
+			// Shadow
+			SetHighColor(0, 0, 0, 180);
+			StrokeLine(BPoint(bounds.left - 4 + 2, bounds.bottom + 4 + 2),
+				BPoint(bounds.right + 4 + 2, bounds.top - 4 + 2));
+			// White slash
 			SetHighColor(255, 255, 255);
-			SetPenSize(3);
-			StrokeLine(BPoint(bounds.left + 8, bounds.bottom - 8),
-				BPoint(bounds.right - 8, bounds.top + 8));
+			StrokeLine(BPoint(bounds.left - 4, bounds.bottom + 4),
+				BPoint(bounds.right + 4, bounds.top - 4));
 			SetPenSize(1);
 		}
 	}
