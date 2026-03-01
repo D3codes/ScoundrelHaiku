@@ -12,6 +12,7 @@ public:
 	virtual				~StatsBarView();
 
 	virtual void		Draw(BRect updateRect);
+	virtual void		AttachedToWindow();
 	virtual void		MouseMoved(BPoint where, uint32 transit,
 							const BMessage* dragMessage);
 
