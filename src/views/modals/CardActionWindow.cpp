@@ -6,6 +6,7 @@
 #include "utils/MessageCodes.h"
 
 #include <Bitmap.h>
+#include <Picture.h>
 #include <StringView.h>
 #include <View.h>
 
@@ -148,18 +149,22 @@ public:
 			float imageY = cardRect.top + 10;
 
 			BRect destRect(imageX, imageY, imageX + imageWidth, imageY + imageHeight);
-			float imageRadius = 12;
+			float imageRadius = 10;
 
-			// Fill rounded rect background first
-			SetHighColor(kCardBackgroundColor);
+			// Create a clipping picture for rounded corners
+			BPicture clipPicture;
+			BeginPicture(&clipPicture);
 			FillRoundRect(destRect, imageRadius, imageRadius);
+			EndPicture();
 
-			// Draw image inset so rounded background corners show around sharp image edges
-			float imageMargin = 6;
-			BRect insetDestRect = destRect.InsetByCopy(imageMargin, imageMargin);
+			// Clip to rounded rect and draw image
+			ClipToPicture(&clipPicture, B_ORIGIN, false);
 			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(cardImage, imageRect, insetDestRect);
+			DrawBitmap(cardImage, imageRect, destRect);
 			SetDrawingMode(B_OP_COPY);
+
+			// Remove clipping
+			ClipToPicture(NULL);
 
 			// Stroke the rounded border
 			SetHighColor(160, 150, 130);
