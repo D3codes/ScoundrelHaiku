@@ -112,21 +112,26 @@ public:
 			return;
 
 		BRect bounds = Bounds();
-		SetPenSize(5);
+		float inset = 6;
+		SetPenSize(4);
 		// Shadow
 		SetHighColor(0, 0, 0, 180);
-		StrokeLine(BPoint(bounds.left + 2, bounds.bottom - 2),
-			BPoint(bounds.right - 2, bounds.top + 6));
+		StrokeLine(BPoint(bounds.left + inset + 2, bounds.bottom - inset + 2),
+			BPoint(bounds.right - inset + 2, bounds.top + inset + 2));
 		// White slash
 		SetHighColor(255, 255, 255);
-		StrokeLine(BPoint(bounds.left, bounds.bottom - 4),
-			BPoint(bounds.right - 4, bounds.top + 4));
+		StrokeLine(BPoint(bounds.left + inset, bounds.bottom - inset),
+			BPoint(bounds.right - inset, bounds.top + inset));
 		SetPenSize(1);
 	}
 
 	void SetSlashVisible(bool visible) {
 		if (fVisible != visible) {
 			fVisible = visible;
+			// Invalidate parent area to clear/redraw the slash region
+			if (Parent() != NULL) {
+				Parent()->Invalidate(Frame());
+			}
 			Invalidate();
 		}
 	}
