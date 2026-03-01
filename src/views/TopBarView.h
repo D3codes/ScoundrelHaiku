@@ -13,6 +13,7 @@ public:
 	virtual void		Draw(BRect updateRect);
 	virtual void		AttachedToWindow();
 	virtual void		MessageReceived(BMessage* message);
+	virtual bool		GetToolTipAt(BPoint point, BToolTip** _tip);
 
 	void				SetGame(Game* game);
 	void				Refresh();
@@ -23,13 +24,12 @@ public:
 private:
 	void				DrawIconBox(BRect boxRect, const char* iconName, int value);
 	void				DrawScoreBox(BRect boxRect);
-	void				UpdateTooltips();
+	BRect				GetDeckBoxRect();
+	BRect				GetDungeonBoxRect();
 
 	BView*				fPauseButton;
 	BView*				fFleeButton;
 	BView*				fSlashOverlay;
-	BView*				fDeckTooltipView;
-	BView*				fDungeonTooltipView;
 
 	Game*				fGame;
 	int					fVisualDeckCount;

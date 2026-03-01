@@ -12,6 +12,7 @@ public:
 	virtual				~StatsBarView();
 
 	virtual void		Draw(BRect updateRect);
+	virtual bool		GetToolTipAt(BPoint point, BToolTip** _tip);
 
 	void				SetPlayer(Player* player);
 	void				Refresh();
@@ -20,10 +21,9 @@ private:
 	void				DrawIconBox(BRect boxRect, const char* iconName, int value);
 	void				DrawProgressBar(BRect barRect, rgb_color fillColor,
 							float fillRatio);
-	void				UpdateTooltips();
+	BRect				GetSwordBoxRect();
 
 	Player*				fPlayer;
-	BView*				fSwordTooltipView;
 };
 
 #endif // STATS_BAR_VIEW_H

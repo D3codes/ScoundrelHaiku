@@ -5,40 +5,18 @@
 
 #include <Bitmap.h>
 #include <String.h>
+#include <ToolTip.h>
 #include <Window.h>
-
-
-// Transparent view that provides tooltip for an icon box
-class StatsTooltipView : public BView {
-public:
-	StatsTooltipView(BRect frame, const char* name)
-		: BView(frame, name, B_FOLLOW_NONE, 0)
-	{
-		SetViewColor(B_TRANSPARENT_COLOR);
-	}
-};
 
 
 StatsBarView::StatsBarView(BRect frame)
 	:
 	BView(frame, "statsBarView", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM,
 		B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
-	fPlayer(NULL),
-	fSwordTooltipView(NULL)
+	fPlayer(NULL)
 {
 	// Solid color fallback - Draw() will paint over it
 	SetViewColor(80, 60, 40);
-
-	// Create tooltip view for sword icon (same position as Draw())
-	float padding = 15;
-	float iconBoxSize = 50;
-	float healthY = 10;
-	float weaponY = healthY + iconBoxSize + 10;
-	float swordX = padding + iconBoxSize + 8;
-
-	BRect swordBoxRect(swordX, weaponY, swordX + iconBoxSize, weaponY + iconBoxSize);
-	fSwordTooltipView = new StatsTooltipView(swordBoxRect, "swordTooltip");
-	AddChild(fSwordTooltipView);
 }
 
 
@@ -58,7 +36,6 @@ StatsBarView::SetPlayer(Player* player)
 void
 StatsBarView::Refresh()
 {
-	UpdateTooltips();
 	Invalidate();
 }
 
@@ -206,22 +183,39 @@ StatsBarView::DrawProgressBar(BRect barRect, rgb_color fillColor, float fillRati
 }
 
 
-void
-StatsBarView::UpdateTooltips()
+BRect
+StatsBarView::GetSwordBoxRect()
+{
+	float padding = 15;
+	float iconBoxSize = 50;
+	float healthY = 10;
+	float weaponY = healthY + iconBoxSize + 10;
+	float swordX = padding + iconBoxSize + 8;
+
+	return BRect(swordX, weaponY, swordX + iconBoxSize, weaponY + iconBoxSize);
+}
+
+
+bool
+StatsBarView::GetToolTipAt(BPoint point, BToolTip** _tip)
 {
 	if (fPlayer == NULL)
-		return;
+		return false;
 
-	// Update sword tooltip
-	if (fSwordTooltipView != NULL) {
+	// Check if hovering over sword icon
+	BRect swordRect = GetSwordBoxRect();
+	if (swordRect.Contains(point)) {
 		int strongestMonster = fPlayer->StrongestMonsterCanAttack();
-		BString swordTip;
+		BString tipText;
 		if (strongestMonster > 0) {
-			swordTip.SetToFormat("Can attack monsters with strength %d or less",
+			tipText.SetToFormat("Can attack monsters with strength %d or less",
 				strongestMonster);
 		} else {
-			swordTip = "No weapon equipped";
+			tipText = "No weapon equipped";
 		}
-		fSwordTooltipView->SetToolTip(swordTip.String());
+		*_tip = new BTextToolTip(tipText.String());
+		return true;
 	}
+
+	return false;
 }
