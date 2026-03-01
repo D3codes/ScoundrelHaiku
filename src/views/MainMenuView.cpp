@@ -90,21 +90,27 @@ MainMenuView::MainMenuView(BRect frame)
 
 	// Resume button (initially hidden)
 	fResumeButton = new PlankButtonMenu(
-		BRect(buttonX, 220, buttonX + buttonWidth, 220 + buttonHeight),
+		BRect(buttonX, 200, buttonX + buttonWidth, 200 + buttonHeight),
 		"Resume", new BMessage(kMsgResumeGame));
 
 	// New Game button
 	fNewGameButton = new PlankButtonMenu(
-		BRect(buttonX, 280, buttonX + buttonWidth, 280 + buttonHeight),
+		BRect(buttonX, 260, buttonX + buttonWidth, 260 + buttonHeight),
 		"New Game", new BMessage(kMsgNewGame));
 
 	// How to Play button
 	fHowToPlayButton = new PlankButtonMenu(
-		BRect(buttonX, 340, buttonX + buttonWidth, 340 + buttonHeight),
+		BRect(buttonX, 320, buttonX + buttonWidth, 320 + buttonHeight),
 		"How to Play", new BMessage(kMsgHowToPlay));
+
+	// High Scores button
+	fHighScoresButton = new PlankButtonMenu(
+		BRect(buttonX, 380, buttonX + buttonWidth, 380 + buttonHeight),
+		"High Scores", new BMessage(kMsgHighScores));
 
 	AddChild(fNewGameButton);
 	AddChild(fHowToPlayButton);
+	AddChild(fHighScoresButton);
 }
 
 
@@ -195,22 +201,27 @@ MainMenuView::SetHasSavedGame(bool hasSaved)
 	float buttonWidth = 200;
 	float buttonHeight = 45;
 	float buttonX = centerX - buttonWidth / 2;
+	float spacing = 55;
 
 	if (hasSaved) {
 		// Add resume button and adjust other buttons
 		if (fResumeButton->Parent() == NULL)
 			AddChild(fResumeButton);
 
-		fResumeButton->MoveTo(buttonX, 220);
-		fNewGameButton->MoveTo(buttonX, 280);
-		fHowToPlayButton->MoveTo(buttonX, 340);
+		float startY = 200;
+		fResumeButton->MoveTo(buttonX, startY);
+		fNewGameButton->MoveTo(buttonX, startY + spacing);
+		fHowToPlayButton->MoveTo(buttonX, startY + spacing * 2);
+		fHighScoresButton->MoveTo(buttonX, startY + spacing * 3);
 	} else {
 		// Remove resume button and move others up
 		if (fResumeButton->Parent() != NULL)
 			fResumeButton->RemoveSelf();
 
-		fNewGameButton->MoveTo(buttonX, 250);
-		fHowToPlayButton->MoveTo(buttonX, 310);
+		float startY = 230;
+		fNewGameButton->MoveTo(buttonX, startY);
+		fHowToPlayButton->MoveTo(buttonX, startY + spacing);
+		fHighScoresButton->MoveTo(buttonX, startY + spacing * 2);
 	}
 
 	Invalidate();

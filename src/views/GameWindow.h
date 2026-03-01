@@ -33,11 +33,15 @@ private:
 	void				ShowDungeonBeatModal();
 	void				HandleCardAction(BMessage* message);
 	void				ShowHowToPlay();
+	void				ShowHighScores();
+	void				ShowNameEntry();
 
 	Game				fGame;
 	MainMenuView*		fMainMenuView;
 	GameBoardView*		fGameBoardView;
 	bool				fShowingMenu;
+	int					fPendingScore;
+	int					fPendingDungeons;
 };
 
 #endif // GAME_WINDOW_H

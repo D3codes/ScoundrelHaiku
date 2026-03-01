@@ -17,6 +17,7 @@ private:
 	BView*				fNewGameButton;
 	BView*				fResumeButton;
 	BView*				fHowToPlayButton;
+	BView*				fHighScoresButton;
 	bool				fHasSavedGame;
 	int					fBackgroundIndex;
 };

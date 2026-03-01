@@ -39,4 +39,8 @@ const uint32 kMsgAnimationTick = 'ANTK';
 const uint32 kMsgDealNextCard = 'DEAL';
 const uint32 kMsgDeckCountChanged = 'DKCT';
 
+// High score messages
+const uint32 kMsgHighScores = 'HSCR';
+const uint32 kMsgHighScoreSaved = 'HSAV';
+
 #endif // MESSAGE_CODES_H

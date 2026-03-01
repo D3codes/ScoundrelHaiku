@@ -6,6 +6,8 @@
 #include "modals/GameOverWindow.h"
 #include "modals/DungeonBeatWindow.h"
 #include "modals/HowToPlayWindow.h"
+#include "modals/HighScoresWindow.h"
+#include "modals/NameEntryWindow.h"
 #include "helpers/SaveManager.h"
 #include "utils/Constants.h"
 #include "utils/MessageCodes.h"
@@ -19,7 +21,9 @@ GameWindow::GameWindow()
 		B_NOT_RESIZABLE | B_NOT_ZOOMABLE | B_QUIT_ON_WINDOW_CLOSE),
 	fMainMenuView(NULL),
 	fGameBoardView(NULL),
-	fShowingMenu(false)
+	fShowingMenu(false),
+	fPendingScore(0),
+	fPendingDungeons(0)
 {
 	fGame.SetObserver(this);
 
@@ -153,6 +157,15 @@ GameWindow::MessageReceived(BMessage* message)
 			HandleCardAction(message);
 			break;
 
+		case kMsgHighScores:
+			ShowHighScores();
+			break;
+
+		case kMsgHighScoreSaved:
+			// Score was saved, now show the game over modal
+			ShowGameOverModal();
+			break;
+
 		default:
 			BWindow::MessageReceived(message);
 			break;
@@ -245,6 +258,23 @@ GameWindow::ShowHowToPlay()
 }
 
 
+void
+GameWindow::ShowHighScores()
+{
+	HighScoresWindow* modal = new HighScoresWindow(this);
+	modal->Show();
+}
+
+
+void
+GameWindow::ShowNameEntry()
+{
+	NameEntryWindow* modal = new NameEntryWindow(this, fPendingScore,
+		fPendingDungeons);
+	modal->Show();
+}
+
+
 // GameObserver implementation
 
 void
@@ -252,8 +282,12 @@ GameWindow::OnGameStateChanged(GameState newState)
 {
 	switch (newState) {
 		case kGameStateGameOver:
-			ShowGameOverModal();
+			// Store score for name entry
+			fPendingScore = fGame.Score();
+			fPendingDungeons = fGame.DungeonDepth();
 			SaveManager::Instance()->DeleteSavedGame();
+			// Show name entry first, then game over modal after saving
+			ShowNameEntry();
 			break;
 		case kGameStateDungeonBeat:
 			ShowDungeonBeatModal();

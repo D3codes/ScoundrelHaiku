@@ -23,9 +23,12 @@ SRCS = \
 	src/views/modals/GameOverWindow.cpp \
 	src/views/modals/DungeonBeatWindow.cpp \
 	src/views/modals/HowToPlayWindow.cpp \
+	src/views/modals/HighScoresWindow.cpp \
+	src/views/modals/NameEntryWindow.cpp \
 	src/helpers/ResourceLoader.cpp \
 	src/helpers/SoundPlayer.cpp \
-	src/helpers/SaveManager.cpp
+	src/helpers/SaveManager.cpp \
+	src/helpers/HighScoreManager.cpp
 
 RDEFS = resources/Scoundrel.rdef
 
