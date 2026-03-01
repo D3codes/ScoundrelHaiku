@@ -9,35 +9,108 @@
 #include <StringView.h>
 #include <View.h>
 
-class CardActionView : public BView {
+
+// Title bar with close button and title
+class CardActionTitleBar : public BView {
 public:
-	CardActionView(BRect frame, Card* card, Player* player, bool canUseWeapon)
-		: BView(frame, "cardActionView", B_FOLLOW_ALL, B_WILL_DRAW),
-		  fCard(card),
-		  fPlayer(player),
-		  fCanUseWeapon(canUseWeapon)
+	CardActionTitleBar(BRect frame, const char* title)
+		: BView(frame, "titleBar", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP, B_WILL_DRAW),
+		  fTitle(title)
 	{
-		// Use parchment color to match How To Play view
+		SetViewColor(B_TRANSPARENT_COLOR);
+	}
+
+	virtual void Draw(BRect updateRect) {
+		BRect bounds = Bounds();
+
+		// Draw stone background
+		BBitmap* stoneBg = ResourceLoader::Instance()->GetUIImage("stoneSlab2");
+		if (stoneBg != NULL) {
+			SetDrawingMode(B_OP_COPY);
+			DrawBitmap(stoneBg, stoneBg->Bounds(), bounds);
+		} else {
+			SetHighColor(80, 80, 100);
+			FillRect(bounds);
+		}
+
+		// Draw close button (X) on the left
+		float buttonSize = 30;
+		float buttonMargin = 5;
+		BRect closeRect(buttonMargin, (bounds.Height() - buttonSize) / 2,
+			buttonMargin + buttonSize, (bounds.Height() + buttonSize) / 2);
+
+		SetHighColor(60, 60, 80);
+		FillRoundRect(closeRect, 5, 5);
+		SetHighColor(100, 100, 120);
+		StrokeRoundRect(closeRect, 5, 5);
+
+		// Draw X
+		SetHighColor(kTextColor);
+		SetPenSize(2);
+		float inset = 8;
+		StrokeLine(BPoint(closeRect.left + inset, closeRect.top + inset),
+			BPoint(closeRect.right - inset, closeRect.bottom - inset));
+		StrokeLine(BPoint(closeRect.right - inset, closeRect.top + inset),
+			BPoint(closeRect.left + inset, closeRect.bottom - inset));
+		SetPenSize(1);
+
+		// Draw title centered
+		BFont font;
+		font.SetSize(20);
+		font.SetFace(B_BOLD_FACE);
+		SetFont(&font);
+		SetHighColor(kTextColor);
+
+		float titleWidth = StringWidth(fTitle.String());
+		float titleX = (bounds.Width() - titleWidth) / 2;
+		DrawString(fTitle.String(), BPoint(titleX, bounds.Height() / 2 + 7));
+	}
+
+	virtual void MouseDown(BPoint where) {
+		// Check if close button was clicked
+		float buttonSize = 30;
+		float buttonMargin = 5;
+		BRect closeRect(buttonMargin, (Bounds().Height() - buttonSize) / 2,
+			buttonMargin + buttonSize, (Bounds().Height() + buttonSize) / 2);
+
+		if (closeRect.Contains(where)) {
+			Window()->PostMessage(new BMessage(kActionCancel));
+		}
+	}
+
+private:
+	BString fTitle;
+};
+
+
+class CardActionContentView : public BView {
+public:
+	CardActionContentView(BRect frame, Card* card)
+		: BView(frame, "cardActionView", B_FOLLOW_ALL, B_WILL_DRAW),
+		  fCard(card)
+	{
 		SetViewColor(222, 210, 190);
 	}
 
 	virtual void Draw(BRect updateRect) {
 		BRect bounds = Bounds();
 
-		// Explicitly fill background to prevent underlying views showing through
+		// Fill background
 		SetHighColor(222, 210, 190);
 		FillRect(bounds);
 
 		// Draw card area with paper background
 		float cardRadius = 12;
-		BRect cardRect(bounds.Width() / 2 - 80, 30,
-			bounds.Width() / 2 + 80, 230);
+		float cardWidth = 140;
+		float cardHeight = 180;
+		BRect cardRect((bounds.Width() - cardWidth) / 2, 15,
+			(bounds.Width() + cardWidth) / 2, 15 + cardHeight);
 
 		// Draw card background
 		SetHighColor(kCardBackgroundColor);
 		FillRoundRect(cardRect, cardRadius, cardRadius);
 
-		// Draw paper texture on card (inset for rounded corners)
+		// Draw paper texture on card
 		BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
 		if (paperBg != NULL) {
 			BRect insetCardRect = cardRect.InsetByCopy(2, 2);
@@ -52,20 +125,20 @@ public:
 		StrokeRoundRect(cardRect, cardRadius, cardRadius);
 		SetPenSize(1);
 
-		// Draw card image with rounded corners
+		// Draw card image
 		BBitmap* cardImage = ResourceLoader::Instance()->GetCardImage(
 			fCard->GetImageName().String());
 
 		if (cardImage != NULL) {
 			BRect imageRect = cardImage->Bounds();
-			float scale = 120.0f / imageRect.Width();
-			if (140.0f / imageRect.Height() < scale)
-				scale = 140.0f / imageRect.Height();
+			float scale = 100.0f / imageRect.Width();
+			if (110.0f / imageRect.Height() < scale)
+				scale = 110.0f / imageRect.Height();
 
 			float imageWidth = imageRect.Width() * scale;
 			float imageHeight = imageRect.Height() * scale;
 			float imageX = cardRect.left + (cardRect.Width() - imageWidth) / 2;
-			float imageY = cardRect.top + 15;
+			float imageY = cardRect.top + 12;
 
 			BRect destRect(imageX, imageY, imageX + imageWidth, imageY + imageHeight);
 			float imageRadius = 8;
@@ -74,7 +147,7 @@ public:
 			SetHighColor(kCardBackgroundColor);
 			FillRoundRect(destRect, imageRadius, imageRadius);
 
-			// Draw image inset for rounded corners
+			// Draw image
 			BRect insetDestRect = destRect.InsetByCopy(2, 2);
 			SetDrawingMode(B_OP_ALPHA);
 			DrawBitmap(cardImage, imageRect, insetDestRect);
@@ -86,7 +159,7 @@ public:
 		}
 
 		// Draw icon and strength at bottom of card
-		float iconSize = 25;
+		float iconSize = 22;
 		BBitmap* icon = ResourceLoader::Instance()->GetGlyph(
 			fCard->GetIconName().String());
 
@@ -94,34 +167,31 @@ public:
 		strengthStr.SetToFormat("%d", fCard->Strength());
 
 		BFont font;
-		font.SetSize(24);
+		font.SetSize(20);
 		font.SetFace(B_BOLD_FACE);
 		SetFont(&font);
 
 		float textWidth = StringWidth(strengthStr.String());
-		float contentWidth = iconSize + 8 + textWidth;
+		float contentWidth = iconSize + 6 + textWidth;
 		float startX = cardRect.left + (cardRect.Width() - contentWidth) / 2;
-		float bottomY = cardRect.bottom - 15;
+		float bottomY = cardRect.bottom - 12;
 
 		if (icon != NULL) {
 			BRect iconRect = icon->Bounds();
-			float iconScale = iconSize / iconRect.Width();
 			BRect destRect(startX, bottomY - iconSize,
 				startX + iconSize, bottomY);
 			SetDrawingMode(B_OP_ALPHA);
 			DrawBitmap(icon, iconRect, destRect);
 			SetDrawingMode(B_OP_COPY);
-			startX += iconSize + 8;
+			startX += iconSize + 6;
 		}
 
 		SetHighColor(kDarkTextColor);
-		DrawString(strengthStr.String(), BPoint(startX, bottomY - 5));
+		DrawString(strengthStr.String(), BPoint(startX, bottomY - 3));
 	}
 
 private:
 	Card* fCard;
-	Player* fPlayer;
-	bool fCanUseWeapon;
 };
 
 
@@ -182,7 +252,7 @@ public:
 
 		// Draw button text
 		BFont font;
-		font.SetSize(20);
+		font.SetSize(18);
 		font.SetFace(B_BOLD_FACE);
 		SetFont(&font);
 
@@ -192,24 +262,23 @@ public:
 		float totalWidth = textWidth;
 
 		// Add space for damage preview if showing
-		float heartSize = 30;
+		float heartSize = 25;
 		if (fDamagePreview >= 0) {
-			totalWidth += heartSize + 30; // heart + damage text
+			totalWidth += heartSize + 25;
 		}
 
 		float startX = (bounds.Width() - totalWidth) / 2;
-		float textY = bounds.Height() / 2 + 7;
+		float textY = bounds.Height() / 2 + 6;
 
 		DrawString(fLabel.String(), BPoint(startX, textY));
 
 		// Draw damage preview with heart icon
 		if (fDamagePreview >= 0) {
-			float heartX = startX + textWidth + 10;
+			float heartX = startX + textWidth + 8;
 
 			BBitmap* heartIcon = ResourceLoader::Instance()->GetGlyph("heart1");
 			if (heartIcon != NULL) {
 				BRect iconRect = heartIcon->Bounds();
-				float scale = heartSize / iconRect.Width();
 				BRect destRect(heartX, (bounds.Height() - heartSize) / 2,
 					heartX + heartSize, (bounds.Height() + heartSize) / 2);
 				SetDrawingMode(B_OP_ALPHA);
@@ -220,13 +289,13 @@ public:
 			// Draw damage number on heart
 			BString damageStr;
 			damageStr.SetToFormat("-%d", fDamagePreview);
-			font.SetSize(14);
+			font.SetSize(12);
 			SetFont(&font);
 			SetHighColor(kTextColor);
 			float damageWidth = StringWidth(damageStr.String());
 			DrawString(damageStr.String(),
 				BPoint(heartX + (heartSize - damageWidth) / 2,
-					bounds.Height() / 2 + 5));
+					bounds.Height() / 2 + 4));
 		}
 	}
 
@@ -249,14 +318,31 @@ private:
 CardActionWindow::CardActionWindow(BWindow* parent, Card* card,
 	int32 cardIndex, bool canUseWeapon, Player* player)
 	:
-	BWindow(BRect(0, 0, 280, 440), "Card Action",
+	BWindow(BRect(0, 0, 220, 100), "Card Action",
 		B_MODAL_WINDOW_LOOK, B_MODAL_SUBSET_WINDOW_FEEL,
-		B_NOT_RESIZABLE | B_NOT_ZOOMABLE | B_AUTO_UPDATE_SIZE_LIMITS),
+		B_NOT_RESIZABLE | B_NOT_ZOOMABLE),
 	fParent(parent),
 	fCard(card),
 	fCardIndex(cardIndex)
 {
 	AddToSubset(parent);
+
+	// Calculate window size based on content
+	float titleBarHeight = 40;
+	float cardAreaHeight = 210;
+	float buttonHeight = 36;
+	float buttonSpacing = 10;
+	float padding = 15;
+	float windowWidth = 220;
+
+	int numButtons = 1;
+	if (card->Suit() == kSuitMonster && canUseWeapon)
+		numButtons = 2;
+
+	float buttonsHeight = numButtons * buttonHeight + (numButtons - 1) * buttonSpacing;
+	float windowHeight = titleBarHeight + cardAreaHeight + buttonsHeight + padding;
+
+	ResizeTo(windowWidth, windowHeight);
 
 	// Center on parent
 	BRect parentFrame = parent->Frame();
@@ -265,17 +351,44 @@ CardActionWindow::CardActionWindow(BWindow* parent, Card* card,
 	float y = parentFrame.top + (parentFrame.Height() - frame.Height()) / 2;
 	MoveTo(x, y);
 
-	// Create main view
-	BRect bounds = Bounds();
-	CardActionView* mainView = new CardActionView(bounds, card, player, canUseWeapon);
+	// Determine title based on card type
+	const char* title;
+	switch (card->Suit()) {
+		case kSuitMonster:
+			title = "Attack";
+			break;
+		case kSuitHealthPotion:
+			title = "Potion";
+			break;
+		case kSuitWeapon:
+			title = "Weapon";
+			break;
+		default:
+			title = "Card";
+			break;
+	}
 
-	float buttonWidth = 200;
-	float buttonHeight = 40;
-	float buttonSpacing = 20;
-	float centerX = bounds.Width() / 2;
-	float buttonY = 250;
+	// Create title bar
+	BRect titleRect(0, 0, windowWidth, titleBarHeight);
+	CardActionTitleBar* titleBar = new CardActionTitleBar(titleRect, title);
+	AddChild(titleBar);
 
-	// Create first action button
+	// Create content view (card display)
+	BRect contentRect(0, titleBarHeight, windowWidth, titleBarHeight + cardAreaHeight);
+	CardActionContentView* contentView = new CardActionContentView(contentRect, card);
+	AddChild(contentView);
+
+	// Create buttons container
+	float buttonY = titleBarHeight + cardAreaHeight;
+	float buttonWidth = windowWidth - 30;
+	float centerX = windowWidth / 2;
+
+	// Create background view for buttons
+	BRect buttonAreaRect(0, buttonY, windowWidth, windowHeight);
+	BView* buttonArea = new BView(buttonAreaRect, "buttonArea", B_FOLLOW_NONE, B_WILL_DRAW);
+	buttonArea->SetViewColor(222, 210, 190);
+
+	// Create action button(s)
 	BMessage* firstMsg = new BMessage(kActionDrink);
 	int firstDamage = -1;
 
@@ -288,13 +401,14 @@ CardActionWindow::CardActionWindow(BWindow* parent, Card* card,
 			break;
 		case kSuitMonster:
 			firstMsg->what = kActionAttackUnarmed;
-			firstDamage = card->Strength(); // Full damage when unarmed
+			firstDamage = card->Strength();
 			break;
 	}
 
+	float btnY = 0;
 	fFirstButton = new PlankButton(
-		BRect(centerX - buttonWidth / 2, buttonY,
-			centerX + buttonWidth / 2, buttonY + buttonHeight),
+		BRect(centerX - buttonWidth / 2, btnY,
+			centerX + buttonWidth / 2, btnY + buttonHeight),
 		"firstBtn", card->GetFirstButtonText().String(),
 		firstMsg, firstMsg->what);
 
@@ -302,8 +416,8 @@ CardActionWindow::CardActionWindow(BWindow* parent, Card* card,
 		((PlankButton*)fFirstButton)->SetDamagePreview(firstDamage);
 	}
 
-	mainView->AddChild(fFirstButton);
-	buttonY += buttonHeight + buttonSpacing;
+	buttonArea->AddChild(fFirstButton);
+	btnY += buttonHeight + buttonSpacing;
 
 	// Create second action button (only for monsters with weapon)
 	fSecondButton = NULL;
@@ -313,25 +427,18 @@ CardActionWindow::CardActionWindow(BWindow* parent, Card* card,
 		if (weaponDamage < 0) weaponDamage = 0;
 
 		fSecondButton = new PlankButton(
-			BRect(centerX - buttonWidth / 2, buttonY,
-				centerX + buttonWidth / 2, buttonY + buttonHeight),
+			BRect(centerX - buttonWidth / 2, btnY,
+				centerX + buttonWidth / 2, btnY + buttonHeight),
 			"secondBtn", card->GetSecondButtonText().String(),
 			secondMsg, kActionAttackWeapon);
 
 		((PlankButton*)fSecondButton)->SetDamagePreview(weaponDamage);
-		mainView->AddChild(fSecondButton);
-		buttonY += buttonHeight + buttonSpacing;
+		buttonArea->AddChild(fSecondButton);
 	}
 
-	// Cancel button
-	fCancelButton = new PlankButton(
-		BRect(centerX - buttonWidth / 2, buttonY,
-			centerX + buttonWidth / 2, buttonY + buttonHeight),
-		"cancelBtn", "Cancel", new BMessage(kActionCancel), kActionCancel);
+	fCancelButton = NULL; // Cancel is now in title bar
 
-	mainView->AddChild(fCancelButton);
-
-	AddChild(mainView);
+	AddChild(buttonArea);
 }
 
 
