@@ -125,7 +125,7 @@ public:
 		SetPenSize(1);
 	}
 
-	void SetSlashVisible(bool visible) {
+	void SetSlashVisible(bool visible, BView* buttonView = NULL) {
 		if (fVisible != visible) {
 			fVisible = visible;
 			if (visible) {
@@ -134,9 +134,12 @@ public:
 			} else {
 				if (!IsHidden())
 					Hide();
-				// Invalidate parent area to clear the slash
+				// Invalidate parent area to clear the slash and button corners
 				if (Parent() != NULL) {
 					Parent()->Invalidate(Frame());
+					if (buttonView != NULL) {
+						Parent()->Invalidate(buttonView->Frame());
+					}
 				}
 			}
 			Invalidate();
@@ -389,7 +392,7 @@ TopBarView::Refresh()
 	// Update slash overlay visibility
 	SlashOverlay* slash = dynamic_cast<SlashOverlay*>(fSlashOverlay);
 	if (slash != NULL)
-		slash->SetSlashVisible(!canFlee);
+		slash->SetSlashVisible(!canFlee, fFleeButton);
 
 	Invalidate();
 }
