@@ -128,9 +128,16 @@ public:
 	void SetSlashVisible(bool visible) {
 		if (fVisible != visible) {
 			fVisible = visible;
-			// Invalidate parent area to clear/redraw the slash region
-			if (Parent() != NULL) {
-				Parent()->Invalidate(Frame());
+			if (visible) {
+				if (IsHidden())
+					Show();
+			} else {
+				if (!IsHidden())
+					Hide();
+				// Invalidate parent area to clear the slash
+				if (Parent() != NULL) {
+					Parent()->Invalidate(Frame());
+				}
 			}
 			Invalidate();
 		}
