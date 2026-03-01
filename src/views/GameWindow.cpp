@@ -290,6 +290,10 @@ GameWindow::ShowNameEntry()
 	NameEntryWindow* modal = new NameEntryWindow(this, fPendingScore,
 		fPendingDungeons, isHighScore);
 	modal->Show();
+
+	// Automatically open high scores window when achieving a high score
+	if (isHighScore)
+		ShowHighScores();
 }
 
 
