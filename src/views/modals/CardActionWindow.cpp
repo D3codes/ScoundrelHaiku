@@ -59,11 +59,18 @@ public:
 		font.SetSize(20);
 		font.SetFace(B_BOLD_FACE);
 		SetFont(&font);
-		SetHighColor(kTextColor);
 
 		float titleWidth = StringWidth(fTitle.String());
 		float titleX = (bounds.Width() - titleWidth) / 2;
-		DrawString(fTitle.String(), BPoint(titleX, bounds.Height() / 2 + 7));
+		float titleY = bounds.Height() / 2 + 7;
+
+		// Draw shadow
+		SetHighColor(0, 0, 0, 180);
+		DrawString(fTitle.String(), BPoint(titleX + 2, titleY + 2));
+
+		// Draw title
+		SetHighColor(kTextColor);
+		DrawString(fTitle.String(), BPoint(titleX, titleY));
 	}
 
 	virtual void MouseDown(BPoint where) {
@@ -256,8 +263,6 @@ public:
 		font.SetFace(B_BOLD_FACE);
 		SetFont(&font);
 
-		SetHighColor(fEnabled ? kTextColor : (rgb_color){100, 100, 100, 255});
-
 		float textWidth = StringWidth(fLabel.String());
 		float totalWidth = textWidth;
 
@@ -270,6 +275,14 @@ public:
 		float startX = (bounds.Width() - totalWidth) / 2;
 		float textY = bounds.Height() / 2 + 6;
 
+		// Draw shadow
+		if (fEnabled) {
+			SetHighColor(0, 0, 0, 180);
+			DrawString(fLabel.String(), BPoint(startX + 2, textY + 2));
+		}
+
+		// Draw text
+		SetHighColor(fEnabled ? kTextColor : (rgb_color){100, 100, 100, 255});
 		DrawString(fLabel.String(), BPoint(startX, textY));
 
 		// Draw damage preview with heart icon
@@ -291,11 +304,17 @@ public:
 			damageStr.SetToFormat("-%d", fDamagePreview);
 			font.SetSize(12);
 			SetFont(&font);
-			SetHighColor(kTextColor);
 			float damageWidth = StringWidth(damageStr.String());
-			DrawString(damageStr.String(),
-				BPoint(heartX + (heartSize - damageWidth) / 2,
-					bounds.Height() / 2 + 4));
+			float damageX = heartX + (heartSize - damageWidth) / 2;
+			float damageY = bounds.Height() / 2 + 4;
+
+			// Draw shadow
+			SetHighColor(0, 0, 0, 180);
+			DrawString(damageStr.String(), BPoint(damageX + 1, damageY + 1));
+
+			// Draw text
+			SetHighColor(kTextColor);
+			DrawString(damageStr.String(), BPoint(damageX, damageY));
 		}
 	}
 

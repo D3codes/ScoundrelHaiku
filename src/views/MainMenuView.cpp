@@ -47,11 +47,18 @@ public:
 		font.SetSize(22);
 		font.SetFace(B_BOLD_FACE);
 		SetFont(&font);
-		SetHighColor(kTextColor);
 
 		float textWidth = StringWidth(fLabel.String());
-		DrawString(fLabel.String(),
-			BPoint((bounds.Width() - textWidth) / 2, bounds.Height() / 2 + 8));
+		float textX = (bounds.Width() - textWidth) / 2;
+		float textY = bounds.Height() / 2 + 8;
+
+		// Draw shadow
+		SetHighColor(0, 0, 0, 180);
+		DrawString(fLabel.String(), BPoint(textX + 2, textY + 2));
+
+		// Draw text
+		SetHighColor(kTextColor);
+		DrawString(fLabel.String(), BPoint(textX, textY));
 	}
 
 	virtual void MouseDown(BPoint where) {
