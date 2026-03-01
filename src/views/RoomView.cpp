@@ -163,14 +163,15 @@ RoomView::Draw(BRect updateRect)
 	}
 
 	// Draw shadows for visible (non-animating) cards
-	float radius = 12;
 	for (int i = 0; i < 4; i++) {
 		if (!fCardViews[i]->IsHidden() && fCardViews[i]->GetCard() != NULL) {
 			BRect cardFrame = fCardViews[i]->Frame();
+			// Expand shadow slightly and use smaller radius to fill corner gaps
 			BRect shadowRect = cardFrame;
-			shadowRect.OffsetBy(4, 4);
+			shadowRect.right += 4;
+			shadowRect.bottom += 4;
 			SetHighColor(0, 0, 0, 100);
-			FillRoundRect(shadowRect, radius, radius);
+			FillRoundRect(shadowRect, 8, 8);
 		}
 	}
 
