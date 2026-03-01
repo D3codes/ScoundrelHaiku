@@ -296,101 +296,12 @@ private:
 };
 
 
-// Header view with close button and title
-class HowToPlayHeaderView : public BView {
-public:
-	HowToPlayHeaderView(BRect frame)
-		: BView(frame, "header", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP,
-			B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE)
-	{
-		// Use solid view color to prevent any transparency issues
-		SetViewColor(180, 165, 140);
-	}
-
-	virtual void Draw(BRect updateRect) {
-		BRect bounds = Bounds();
-
-		// Fill entire background to prevent artifacts
-		SetHighColor(180, 165, 140);
-		FillRect(bounds);
-
-		// Draw bottom border
-		SetHighColor(140, 125, 100);
-		StrokeLine(BPoint(0, bounds.bottom), BPoint(bounds.right, bounds.bottom));
-
-		// Draw title text (to the right of button)
-		BFont font;
-		font.SetSize(24);
-		font.SetFace(B_BOLD_FACE);
-		SetFont(&font);
-		SetHighColor(kDarkTextColor);
-
-		const char* title = "How to Play";
-		float textX = 60;  // After the close button
-		float textY = bounds.Height() / 2 + 8;
-		DrawString(title, BPoint(textX, textY));
-	}
-};
-
-
-// Close button for header
-class CloseButton : public BView {
-public:
-	CloseButton(BRect frame, BMessage* message)
-		: BView(frame, "closeBtn", B_FOLLOW_NONE, B_WILL_DRAW),
-		  fMessage(message)
-	{
-		SetViewColor(B_TRANSPARENT_COLOR);
-	}
-
-	virtual ~CloseButton() {
-		delete fMessage;
-	}
-
-	virtual void Draw(BRect updateRect) {
-		BRect bounds = Bounds();
-		float radius = 5;
-
-		// Draw button background
-		SetHighColor(160, 145, 120);
-		FillRoundRect(bounds, radius, radius);
-
-		// Draw border
-		SetHighColor(120, 105, 80);
-		StrokeRoundRect(bounds, radius, radius);
-
-		// Draw X symbol
-		BFont font;
-		font.SetSize(18);
-		font.SetFace(B_BOLD_FACE);
-		SetFont(&font);
-		SetHighColor(80, 60, 40);
-
-		const char* symbol = "X";
-		float textWidth = StringWidth(symbol);
-		float textX = (bounds.Width() - textWidth) / 2;
-		float textY = bounds.Height() / 2 + 6;
-		DrawString(symbol, BPoint(textX, textY));
-	}
-
-	virtual void MouseDown(BPoint where) {
-		Window()->PostMessage(fMessage);
-	}
-
-private:
-	BMessage* fMessage;
-};
-
-
 HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 	:
-	BWindow(BRect(0, 0, 400, 550), "How to Play",
-		B_MODAL_WINDOW_LOOK, B_MODAL_SUBSET_WINDOW_FEEL,
-		B_NOT_RESIZABLE | B_NOT_ZOOMABLE),
+	BWindow(BRect(0, 0, 400, 500), "How to Play",
+		B_TITLED_WINDOW, B_NOT_RESIZABLE | B_NOT_ZOOMABLE | B_AUTO_UPDATE_SIZE_LIMITS),
 	fParent(parent)
 {
-	AddToSubset(parent);
-
 	// Center on parent
 	BRect parentFrame = parent->Frame();
 	BRect frame = Frame();
@@ -400,27 +311,18 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 
 	BRect bounds = Bounds();
 
-	float headerHeight = 50;
-	float scrollTop = headerHeight;
-	float scrollHeight = bounds.Height() - headerHeight;
 	float contentWidth = bounds.Width() - B_V_SCROLL_BAR_WIDTH - 1;
 	float contentHeight = 1550;
+	float scrollHeight = bounds.Height();
 
-	// Create a container view for the scroll area (positioned below header)
-	BView* scrollContainer = new BView(
-		BRect(0, scrollTop, bounds.Width(), bounds.Height()),
-		"scrollContainer", B_FOLLOW_ALL, 0);
-	scrollContainer->SetViewColor(222, 210, 190);
-	AddChild(scrollContainer);
-
-	// Create content view sized for the visible area
+	// Create content view
 	BRect contentRect(0, 0, contentWidth, scrollHeight);
 	HowToPlayContentView* contentView = new HowToPlayContentView(contentRect);
 
-	// Create scroll view inside the container
+	// Create scroll view
 	BScrollView* scrollView = new BScrollView("scrollView", contentView,
 		B_FOLLOW_ALL, 0, false, true, B_NO_BORDER);
-	scrollContainer->AddChild(scrollView);
+	AddChild(scrollView);
 
 	// Resize content to full scrollable height
 	contentView->ResizeTo(contentWidth, contentHeight);
@@ -431,20 +333,6 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 		vScrollBar->SetRange(0, contentHeight - scrollHeight);
 		vScrollBar->SetProportion(scrollHeight / contentHeight);
 	}
-
-	// Create header view - add last so it's on top in z-order
-	HowToPlayHeaderView* headerView = new HowToPlayHeaderView(
-		BRect(0, 0, bounds.Width(), headerHeight));
-	AddChild(headerView);
-
-	// Add close button to header
-	float buttonSize = 30;
-	float buttonMargin = 10;
-	CloseButton* closeBtn = new CloseButton(
-		BRect(buttonMargin, (headerHeight - buttonSize) / 2,
-			buttonMargin + buttonSize, (headerHeight + buttonSize) / 2),
-		new BMessage(B_QUIT_REQUESTED));
-	headerView->AddChild(closeBtn);
 }
 
 
@@ -457,9 +345,6 @@ void
 HowToPlayWindow::MessageReceived(BMessage* message)
 {
 	switch (message->what) {
-		case B_QUIT_REQUESTED:
-			PostMessage(B_QUIT_REQUESTED);
-			break;
 		default:
 			BWindow::MessageReceived(message);
 			break;
