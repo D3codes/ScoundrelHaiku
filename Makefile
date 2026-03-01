@@ -20,7 +20,6 @@ SRCS = \
 	src/views/StatsBarView.cpp \
 	src/views/modals/CardActionWindow.cpp \
 	src/views/modals/PauseWindow.cpp \
-	src/views/modals/GameOverWindow.cpp \
 	src/views/modals/DungeonBeatWindow.cpp \
 	src/views/modals/HowToPlayWindow.cpp \
 	src/views/modals/HighScoresWindow.cpp \

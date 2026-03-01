@@ -29,7 +29,6 @@ private:
 	void				ShowGameBoard();
 	void				ShowCardActionModal(int32 cardIndex);
 	void				ShowPauseModal();
-	void				ShowGameOverModal();
 	void				ShowDungeonBeatModal();
 	void				HandleCardAction(BMessage* message);
 	void				ShowHowToPlay();

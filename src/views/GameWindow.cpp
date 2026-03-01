@@ -3,7 +3,6 @@
 #include "GameBoardView.h"
 #include "modals/CardActionWindow.h"
 #include "modals/PauseWindow.h"
-#include "modals/GameOverWindow.h"
 #include "modals/DungeonBeatWindow.h"
 #include "modals/HowToPlayWindow.h"
 #include "modals/HighScoresWindow.h"
@@ -161,11 +160,6 @@ GameWindow::MessageReceived(BMessage* message)
 			ShowHighScores();
 			break;
 
-		case kMsgHighScoreSaved:
-			// Score was saved, now show the game over modal
-			ShowGameOverModal();
-			break;
-
 		default:
 			BWindow::MessageReceived(message);
 			break;
@@ -195,15 +189,6 @@ void
 GameWindow::ShowPauseModal()
 {
 	PauseWindow* modal = new PauseWindow(this);
-	modal->Show();
-}
-
-
-void
-GameWindow::ShowGameOverModal()
-{
-	GameOverWindow* modal = new GameOverWindow(this, fGame.Score(),
-		fGame.DungeonDepth());
 	modal->Show();
 }
 
@@ -282,11 +267,10 @@ GameWindow::OnGameStateChanged(GameState newState)
 {
 	switch (newState) {
 		case kGameStateGameOver:
-			// Store score for name entry
+			// Store score for game over modal
 			fPendingScore = fGame.Score();
 			fPendingDungeons = fGame.DungeonDepth();
 			SaveManager::Instance()->DeleteSavedGame();
-			// Show name entry first, then game over modal after saving
 			ShowNameEntry();
 			break;
 		case kGameStateDungeonBeat:

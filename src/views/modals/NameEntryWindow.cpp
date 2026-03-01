@@ -9,13 +9,14 @@
 #include <TextControl.h>
 #include <View.h>
 
-static const uint32 kMsgSaveScore = 'SAVS';
+static const uint32 kMsgMainMenuWithSave = 'MMWS';
+static const uint32 kMsgNewGameWithSave = 'NGWS';
 
 
 // Title bar
-class NameEntryTitleBar : public BView {
+class GameOverTitleBar : public BView {
 public:
-	NameEntryTitleBar(BRect frame)
+	GameOverTitleBar(BRect frame)
 		: BView(frame, "titleBar", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP, B_WILL_DRAW)
 	{
 		SetViewColor(B_TRANSPARENT_COLOR);
@@ -57,10 +58,10 @@ public:
 
 
 // Content view
-class NameEntryContentView : public BView {
+class GameOverContentView : public BView {
 public:
-	NameEntryContentView(BRect frame, int score, int dungeonsBeaten)
-		: BView(frame, "nameEntryContent", B_FOLLOW_ALL, B_WILL_DRAW),
+	GameOverContentView(BRect frame, int score, int dungeonsBeaten)
+		: BView(frame, "gameOverContent", B_FOLLOW_ALL, B_WILL_DRAW),
 		  fScore(score),
 		  fDungeonsBeaten(dungeonsBeaten)
 	{
@@ -103,13 +104,19 @@ private:
 };
 
 
-// Save button
-class SaveButton : public BView {
+// Plank button for game over modal
+class PlankButtonGameOver : public BView {
 public:
-	SaveButton(BRect frame)
-		: BView(frame, "saveBtn", B_FOLLOW_NONE, B_WILL_DRAW)
+	PlankButtonGameOver(BRect frame, const char* label, BMessage* message)
+		: BView(frame, "plankBtn", B_FOLLOW_NONE, B_WILL_DRAW),
+		  fLabel(label),
+		  fMessage(message)
 	{
 		SetViewColor(B_TRANSPARENT_COLOR);
+	}
+
+	virtual ~PlankButtonGameOver() {
+		delete fMessage;
 	}
 
 	virtual void Draw(BRect updateRect) {
@@ -139,29 +146,32 @@ public:
 		font.SetFace(B_BOLD_FACE);
 		SetFont(&font);
 
-		const char* label = "Save Score";
-		float textWidth = StringWidth(label);
+		float textWidth = StringWidth(fLabel.String());
 		float textX = (bounds.Width() - textWidth) / 2;
 		float textY = bounds.Height() / 2 + 6;
 
 		// Shadow
 		SetHighColor(0, 0, 0, 180);
-		DrawString(label, BPoint(textX + 2, textY + 2));
+		DrawString(fLabel.String(), BPoint(textX + 2, textY + 2));
 
 		// Text
 		SetHighColor(kTextColor);
-		DrawString(label, BPoint(textX, textY));
+		DrawString(fLabel.String(), BPoint(textX, textY));
 	}
 
 	virtual void MouseDown(BPoint where) {
-		Window()->PostMessage(new BMessage(kMsgSaveScore));
+		Window()->PostMessage(new BMessage(fMessage->what));
 	}
+
+private:
+	BString fLabel;
+	BMessage* fMessage;
 };
 
 
 NameEntryWindow::NameEntryWindow(BWindow* parent, int score, int dungeonsBeaten)
 	:
-	BWindow(BRect(0, 0, 250, 195), "Enter Name",
+	BWindow(BRect(0, 0, 250, 240), "Game Over",
 		B_MODAL_WINDOW_LOOK, B_MODAL_SUBSET_WINDOW_FEEL,
 		B_NOT_RESIZABLE | B_NOT_ZOOMABLE),
 	fParent(parent),
@@ -182,12 +192,12 @@ NameEntryWindow::NameEntryWindow(BWindow* parent, int score, int dungeonsBeaten)
 
 	// Create title bar
 	BRect titleRect(0, 0, windowWidth, titleBarHeight);
-	NameEntryTitleBar* titleBar = new NameEntryTitleBar(titleRect);
+	GameOverTitleBar* titleBar = new GameOverTitleBar(titleRect);
 	AddChild(titleBar);
 
 	// Create content view
 	BRect contentRect(0, titleBarHeight, windowWidth, Bounds().Height());
-	NameEntryContentView* contentView = new NameEntryContentView(contentRect,
+	GameOverContentView* contentView = new GameOverContentView(contentRect,
 		score, dungeonsBeaten);
 
 	// Add text input
@@ -198,13 +208,20 @@ NameEntryWindow::NameEntryWindow(BWindow* parent, int score, int dungeonsBeaten)
 	fNameInput->SetDivider(0);
 	contentView->AddChild(fNameInput);
 
-	// Add save button
+	// Add buttons
 	float buttonWidth = 140;
 	float buttonHeight = 36;
 	float buttonX = (windowWidth - buttonWidth) / 2;
-	SaveButton* saveBtn = new SaveButton(
-		BRect(buttonX, 130, buttonX + buttonWidth, 130 + buttonHeight));
-	contentView->AddChild(saveBtn);
+
+	PlankButtonGameOver* mainMenuBtn = new PlankButtonGameOver(
+		BRect(buttonX, 130, buttonX + buttonWidth, 130 + buttonHeight),
+		"Main Menu", new BMessage(kMsgMainMenuWithSave));
+	contentView->AddChild(mainMenuBtn);
+
+	PlankButtonGameOver* newGameBtn = new PlankButtonGameOver(
+		BRect(buttonX, 175, buttonX + buttonWidth, 175 + buttonHeight),
+		"New Game", new BMessage(kMsgNewGameWithSave));
+	contentView->AddChild(newGameBtn);
 
 	AddChild(contentView);
 
@@ -222,16 +239,29 @@ void
 NameEntryWindow::MessageReceived(BMessage* message)
 {
 	switch (message->what) {
-		case kMsgSaveScore:
+		case kMsgMainMenuWithSave:
 		{
+			// Save the score
 			const char* name = fNameInput->Text();
 			if (name == NULL || name[0] == '\0')
 				name = "Player";
-
 			HighScoreManager::Instance()->AddScore(name, fScore, fDungeonsBeaten);
 
-			// Notify parent that score was saved
-			fParent->PostMessage(new BMessage(kMsgHighScoreSaved));
+			// Go to main menu
+			fParent->PostMessage(new BMessage(kMsgMainMenu));
+			PostMessage(B_QUIT_REQUESTED);
+			break;
+		}
+		case kMsgNewGameWithSave:
+		{
+			// Save the score
+			const char* name = fNameInput->Text();
+			if (name == NULL || name[0] == '\0')
+				name = "Player";
+			HighScoreManager::Instance()->AddScore(name, fScore, fDungeonsBeaten);
+
+			// Start new game
+			fParent->PostMessage(new BMessage(kMsgNewGame));
 			PostMessage(B_QUIT_REQUESTED);
 			break;
 		}
