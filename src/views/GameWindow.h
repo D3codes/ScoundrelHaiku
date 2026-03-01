@@ -7,6 +7,8 @@
 
 class MainMenuView;
 class GameBoardView;
+class HowToPlayWindow;
+class HighScoresWindow;
 
 class GameWindow : public BWindow, public GameObserver {
 public:
@@ -41,6 +43,8 @@ private:
 	bool				fShowingMenu;
 	int					fPendingScore;
 	int					fPendingDungeons;
+	HowToPlayWindow*	fHowToPlayWindow;
+	HighScoresWindow*	fHighScoresWindow;
 };
 
 #endif // GAME_WINDOW_H

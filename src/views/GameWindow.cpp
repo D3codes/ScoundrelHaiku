@@ -22,7 +22,9 @@ GameWindow::GameWindow()
 	fGameBoardView(NULL),
 	fShowingMenu(false),
 	fPendingScore(0),
-	fPendingDungeons(0)
+	fPendingDungeons(0),
+	fHowToPlayWindow(NULL),
+	fHighScoresWindow(NULL)
 {
 	fGame.SetObserver(this);
 
@@ -235,19 +237,48 @@ GameWindow::HandleCardAction(BMessage* message)
 }
 
 
+// Helper to check if a window pointer is still valid
+static bool
+IsWindowValid(BWindow* window)
+{
+	if (window == NULL)
+		return false;
+
+	// Check if window is still in application's window list
+	int32 count = be_app->CountWindows();
+	for (int32 i = 0; i < count; i++) {
+		if (be_app->WindowAt(i) == window)
+			return true;
+	}
+	return false;
+}
+
+
 void
 GameWindow::ShowHowToPlay()
 {
-	HowToPlayWindow* modal = new HowToPlayWindow(this);
-	modal->Show();
+	if (IsWindowValid(fHowToPlayWindow)) {
+		// Window already exists, bring to front
+		fHowToPlayWindow->Activate();
+		return;
+	}
+
+	fHowToPlayWindow = new HowToPlayWindow(this);
+	fHowToPlayWindow->Show();
 }
 
 
 void
 GameWindow::ShowHighScores()
 {
-	HighScoresWindow* modal = new HighScoresWindow(this);
-	modal->Show();
+	if (IsWindowValid(fHighScoresWindow)) {
+		// Window already exists, bring to front
+		fHighScoresWindow->Activate();
+		return;
+	}
+
+	fHighScoresWindow = new HighScoresWindow(this);
+	fHighScoresWindow->Show();
 }
 
 
