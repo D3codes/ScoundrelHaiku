@@ -2,6 +2,7 @@
 #include "helpers/HighScoreManager.h"
 #include "helpers/ResourceLoader.h"
 #include "utils/Constants.h"
+#include "utils/MessageCodes.h"
 
 #include <Bitmap.h>
 #include <Screen.h>
@@ -56,11 +57,11 @@ public:
 		DrawString("Score", BPoint(bounds.Width() - padding - 80, y));
 		DrawString("Dng", BPoint(bounds.Width() - padding - 25, y));
 
-		y += lineHeight;
-
-		// Draw separator line
+		// Draw separator line right after header
 		SetHighColor(150, 140, 120);
-		StrokeLine(BPoint(padding, y - 8), BPoint(bounds.Width() - padding, y - 8));
+		StrokeLine(BPoint(padding, y + 5), BPoint(bounds.Width() - padding, y + 5));
+
+		y += lineHeight;
 
 		// Draw scores
 		font.SetFace(0);
@@ -116,8 +117,8 @@ HighScoresWindow::HighScoresWindow(BWindow* parent)
 
 	// Create content view (no custom title bar - use system title bar)
 	BRect contentRect = Bounds();
-	HighScoresContentView* contentView = new HighScoresContentView(contentRect);
-	AddChild(contentView);
+	fContentView = new HighScoresContentView(contentRect);
+	AddChild(fContentView);
 }
 
 
@@ -130,6 +131,10 @@ void
 HighScoresWindow::MessageReceived(BMessage* message)
 {
 	switch (message->what) {
+		case kMsgHighScoresUpdated:
+			if (fContentView != NULL)
+				fContentView->Invalidate();
+			break;
 		default:
 			BWindow::MessageReceived(message);
 			break;

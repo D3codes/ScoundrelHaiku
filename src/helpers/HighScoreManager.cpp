@@ -1,10 +1,14 @@
 #include "HighScoreManager.h"
+#include "utils/MessageCodes.h"
 
+#include <Application.h>
 #include <Directory.h>
 #include <File.h>
 #include <FindDirectory.h>
+#include <Looper.h>
 #include <Message.h>
 #include <Path.h>
+#include <Window.h>
 
 HighScoreManager* HighScoreManager::sInstance = NULL;
 
@@ -61,6 +65,16 @@ HighScoreManager::AddScore(const char* name, int score, int dungeonsBeaten)
 	}
 
 	Save();
+
+	// Notify all windows that scores have been updated
+	if (be_app != NULL) {
+		int32 count = be_app->CountWindows();
+		for (int32 i = 0; i < count; i++) {
+			BWindow* window = be_app->WindowAt(i);
+			if (window != NULL)
+				window->PostMessage(kMsgHighScoresUpdated);
+		}
+	}
 }
 
 
