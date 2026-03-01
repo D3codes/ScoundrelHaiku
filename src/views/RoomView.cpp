@@ -213,20 +213,27 @@ RoomView::DrawAnimatingCard(CardAnimation& anim)
 	shadowRect.OffsetBy(4 * scale, 4 * scale);
 	FillRoundRect(shadowRect, radius, radius);
 
-	// Draw card background
+	// Fill card background
 	SetHighColor(kCardBackgroundColor);
 	FillRoundRect(cardRect, radius, radius);
 
-	// Draw paper texture
+	// Create clipping for rounded card shape
+	BPicture cardClipPicture;
+	BeginPicture(&cardClipPicture);
+	FillRoundRect(cardRect, radius, radius);
+	EndPicture();
+
+	// Draw paper texture clipped to rounded card
 	BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
 	if (paperBg != NULL) {
-		BRect insetBounds = cardRect.InsetByCopy(2 * scale, 2 * scale);
+		ClipToPicture(&cardClipPicture, B_ORIGIN, false);
 		SetDrawingMode(B_OP_ALPHA);
-		DrawBitmap(paperBg, paperBg->Bounds(), insetBounds);
+		DrawBitmap(paperBg, paperBg->Bounds(), cardRect);
 		SetDrawingMode(B_OP_COPY);
+		ClipToPicture(NULL);
 	}
 
-	// Draw card border
+	// Stroke card border
 	SetHighColor(180, 170, 150);
 	StrokeRoundRect(cardRect, radius, radius);
 

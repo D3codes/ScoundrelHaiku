@@ -114,20 +114,27 @@ public:
 		BRect cardRect((bounds.Width() - cardWidth) / 2, 15,
 			(bounds.Width() + cardWidth) / 2, 15 + cardHeight);
 
-		// Draw card background
+		// Fill card background
 		SetHighColor(kCardBackgroundColor);
 		FillRoundRect(cardRect, cardRadius, cardRadius);
 
-		// Draw paper texture on card
+		// Create clipping for rounded card shape
+		BPicture cardClipPicture;
+		BeginPicture(&cardClipPicture);
+		FillRoundRect(cardRect, cardRadius, cardRadius);
+		EndPicture();
+
+		// Draw paper texture clipped to rounded card
 		BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
 		if (paperBg != NULL) {
-			BRect insetCardRect = cardRect.InsetByCopy(2, 2);
+			ClipToPicture(&cardClipPicture, B_ORIGIN, false);
 			SetDrawingMode(B_OP_ALPHA);
-			DrawBitmap(paperBg, paperBg->Bounds(), insetCardRect);
+			DrawBitmap(paperBg, paperBg->Bounds(), cardRect);
 			SetDrawingMode(B_OP_COPY);
+			ClipToPicture(NULL);
 		}
 
-		// Draw card border
+		// Stroke card border
 		SetHighColor(180, 170, 150);
 		SetPenSize(2);
 		StrokeRoundRect(cardRect, cardRadius, cardRadius);

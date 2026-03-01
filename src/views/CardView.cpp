@@ -113,22 +113,33 @@ CardView::DrawCard()
 	BRect bounds = Bounds();
 	float radius = 12;
 
+	// Draw card shadow
 	SetHighColor(0, 0, 0, 100);
 	BRect shadowRect = bounds;
 	shadowRect.OffsetBy(4, 4);
 	FillRoundRect(shadowRect, radius, radius);
 
+	// Fill card background
 	SetHighColor(kCardBackgroundColor);
 	FillRoundRect(bounds, radius, radius);
 
+	// Create clipping for rounded card shape
+	BPicture cardClipPicture;
+	BeginPicture(&cardClipPicture);
+	FillRoundRect(bounds, radius, radius);
+	EndPicture();
+
+	// Draw paper texture clipped to rounded card
 	BBitmap* paperBg = ResourceLoader::Instance()->GetUIImage("paper");
 	if (paperBg != NULL) {
-		BRect insetBounds = bounds.InsetByCopy(2, 2);
+		ClipToPicture(&cardClipPicture, B_ORIGIN, false);
 		SetDrawingMode(B_OP_ALPHA);
-		DrawBitmap(paperBg, paperBg->Bounds(), insetBounds);
+		DrawBitmap(paperBg, paperBg->Bounds(), bounds);
 		SetDrawingMode(B_OP_COPY);
+		ClipToPicture(NULL);
 	}
 
+	// Stroke card border
 	SetHighColor(180, 170, 150);
 	StrokeRoundRect(bounds, radius, radius);
 
