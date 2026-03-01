@@ -139,16 +139,16 @@ public:
 		if (cardImage != NULL) {
 			BRect imageRect = cardImage->Bounds();
 			float scale = 100.0f / imageRect.Width();
-			if (110.0f / imageRect.Height() < scale)
-				scale = 110.0f / imageRect.Height();
+			if (105.0f / imageRect.Height() < scale)
+				scale = 105.0f / imageRect.Height();
 
 			float imageWidth = imageRect.Width() * scale;
 			float imageHeight = imageRect.Height() * scale;
 			float imageX = cardRect.left + (cardRect.Width() - imageWidth) / 2;
-			float imageY = cardRect.top + 12;
+			float imageY = cardRect.top + 10;
 
 			BRect destRect(imageX, imageY, imageX + imageWidth, imageY + imageHeight);
-			float imageRadius = 8;
+			float imageRadius = 12;
 
 			// Draw rounded background for image
 			SetHighColor(kCardBackgroundColor);
@@ -166,7 +166,7 @@ public:
 		}
 
 		// Draw icon and strength at bottom of card
-		float iconSize = 22;
+		float iconSize = 26;
 		BBitmap* icon = ResourceLoader::Instance()->GetGlyph(
 			fCard->GetIconName().String());
 
@@ -174,14 +174,14 @@ public:
 		strengthStr.SetToFormat("%d", fCard->Strength());
 
 		BFont font;
-		font.SetSize(20);
+		font.SetSize(22);
 		font.SetFace(B_BOLD_FACE);
 		SetFont(&font);
 
 		float textWidth = StringWidth(strengthStr.String());
 		float contentWidth = iconSize + 6 + textWidth;
 		float startX = cardRect.left + (cardRect.Width() - contentWidth) / 2;
-		float bottomY = cardRect.bottom - 12;
+		float bottomY = cardRect.bottom - 8;
 
 		if (icon != NULL) {
 			BRect iconRect = icon->Bounds();
@@ -194,7 +194,7 @@ public:
 		}
 
 		SetHighColor(kDarkTextColor);
-		DrawString(strengthStr.String(), BPoint(startX, bottomY - 3));
+		DrawString(strengthStr.String(), BPoint(startX, bottomY - 4));
 	}
 
 private:

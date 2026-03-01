@@ -134,12 +134,12 @@ CardView::DrawCard()
 	BBitmap* cardImage = ResourceLoader::Instance()->GetCardImage(
 		fCard->GetImageName().String());
 
-	float bottomAreaHeight = 45;
+	float bottomAreaHeight = 38;
 	float imageAreaHeight = bounds.Height() - bottomAreaHeight;
 
 	if (cardImage != NULL) {
 		BRect imageRect = cardImage->Bounds();
-		float padding = 10;
+		float padding = 8;
 		float availWidth = bounds.Width() - padding * 2;
 		float availHeight = imageAreaHeight - padding * 2;
 
@@ -154,7 +154,7 @@ CardView::DrawCard()
 
 		BRect destRect(imageX, imageY, imageX + imageWidth, imageY + imageHeight);
 
-		float imageRadius = 8;
+		float imageRadius = 12;
 		SetHighColor(kCardBackgroundColor);
 		FillRoundRect(destRect, imageRadius, imageRadius);
 
@@ -179,12 +179,12 @@ CardView::DrawCard()
 		}
 	}
 
-	float iconSize = 24;
+	float iconSize = 28;
 	BBitmap* suitIcon = ResourceLoader::Instance()->GetGlyph(
 		fCard->GetIconName().String());
 
 	BFont font;
-	font.SetSize(24);
+	font.SetSize(26);
 	font.SetFace(B_BOLD_FACE);
 	SetFont(&font);
 
@@ -192,10 +192,10 @@ CardView::DrawCard()
 	strengthStr.SetToFormat("%d", fCard->Strength());
 	float textWidth = StringWidth(strengthStr.String());
 
-	float spacing = 8;
+	float spacing = 6;
 	float totalWidth = iconSize + spacing + textWidth;
 	float startX = (bounds.Width() - totalWidth) / 2;
-	float bottomY = bounds.Height() - 12;
+	float bottomY = bounds.Height() - 6;
 
 	if (suitIcon != NULL) {
 		SetDrawingMode(B_OP_ALPHA);
@@ -207,7 +207,7 @@ CardView::DrawCard()
 
 	SetHighColor(0, 0, 0);
 	DrawString(strengthStr.String(),
-		BPoint(startX + iconSize + spacing, bottomY - 3));
+		BPoint(startX + iconSize + spacing, bottomY - 4));
 }
 
 
