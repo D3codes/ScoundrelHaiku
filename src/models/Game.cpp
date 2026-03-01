@@ -99,7 +99,6 @@ void
 Game::Pause()
 {
 	if (fState == kGameStatePlaying) {
-		SoundPlayer::Instance()->PlaySound(SFX_PAGE);
 		fState = kGameStatePaused;
 		NotifyStateChanged();
 	}
