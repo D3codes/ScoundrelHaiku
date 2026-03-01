@@ -200,7 +200,7 @@ private:
 NameEntryWindow::NameEntryWindow(BWindow* parent, int score, int dungeonsBeaten,
 	bool isHighScore)
 	:
-	BWindow(BRect(0, 0, 250, isHighScore ? 288 : 175), "Game Over",
+	BWindow(BRect(0, 0, 250, isHighScore ? 288 : 195), "Game Over",
 		B_MODAL_WINDOW_LOOK, B_MODAL_SUBSET_WINDOW_FEEL,
 		B_NOT_RESIZABLE | B_NOT_ZOOMABLE),
 	fParent(parent),
@@ -260,14 +260,14 @@ NameEntryWindow::NameEntryWindow(BWindow* parent, int score, int dungeonsBeaten,
 			"New Game", new BMessage(kMsgNewGameWithSave));
 		contentView->AddChild(newGameBtn);
 	} else {
-		// No name input - just buttons (compact layout)
+		// No name input - buttons with spacing from score info
 		PlankButtonGameOver* mainMenuBtn = new PlankButtonGameOver(
-			BRect(buttonX, 55, buttonX + buttonWidth, 55 + buttonHeight),
+			BRect(buttonX, 70, buttonX + buttonWidth, 70 + buttonHeight),
 			"Main Menu", new BMessage(kMsgMainMenuWithSave));
 		contentView->AddChild(mainMenuBtn);
 
 		PlankButtonGameOver* newGameBtn = new PlankButtonGameOver(
-			BRect(buttonX, 100, buttonX + buttonWidth, 100 + buttonHeight),
+			BRect(buttonX, 115, buttonX + buttonWidth, 115 + buttonHeight),
 			"New Game", new BMessage(kMsgNewGameWithSave));
 		contentView->AddChild(newGameBtn);
 	}
