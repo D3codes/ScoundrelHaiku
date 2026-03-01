@@ -28,8 +28,8 @@ void
 StatsBarView::AttachedToWindow()
 {
 	BView::AttachedToWindow();
-	// Enable mouse tracking to receive MouseMoved events for tooltips
-	SetEventMask(B_POINTER_EVENTS, 0);
+	// Test: set a static tooltip to verify tooltips work
+	SetToolTip("Stats bar test tooltip");
 }
 
 
