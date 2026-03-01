@@ -162,6 +162,18 @@ RoomView::Draw(BRect updateRect)
 		DrawBitmap(background, ourSrcRect, bounds);
 	}
 
+	// Draw shadows for visible (non-animating) cards
+	float radius = 12;
+	for (int i = 0; i < 4; i++) {
+		if (!fCardViews[i]->IsHidden() && fCardViews[i]->GetCard() != NULL) {
+			BRect cardFrame = fCardViews[i]->Frame();
+			BRect shadowRect = cardFrame;
+			shadowRect.OffsetBy(4, 4);
+			SetHighColor(0, 0, 0, 100);
+			FillRoundRect(shadowRect, radius, radius);
+		}
+	}
+
 	// Draw flee animations (cards going back to deck)
 	for (int i = 0; i < 4; i++) {
 		if (fFleeAnimations[i].active) {

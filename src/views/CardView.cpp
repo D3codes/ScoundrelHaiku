@@ -113,11 +113,7 @@ CardView::DrawCard()
 	BRect bounds = Bounds();
 	float radius = 12;
 
-	// Draw card shadow
-	SetHighColor(0, 0, 0, 100);
-	BRect shadowRect = bounds;
-	shadowRect.OffsetBy(4, 4);
-	FillRoundRect(shadowRect, radius, radius);
+	// Shadow is drawn by parent RoomView to avoid clipping issues
 
 	// Fill card background
 	SetHighColor(kCardBackgroundColor);
