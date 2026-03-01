@@ -5,7 +5,19 @@
 #include "utils/MessageCodes.h"
 
 #include <Bitmap.h>
+#include <String.h>
 #include <Window.h>
+
+
+// Transparent view that provides tooltip for an icon box
+class IconTooltipView : public BView {
+public:
+	IconTooltipView(BRect frame, const char* name)
+		: BView(frame, name, B_FOLLOW_NONE, 0)
+	{
+		SetViewColor(B_TRANSPARENT_COLOR);
+	}
+};
 
 
 // Custom stone-style button
@@ -156,7 +168,9 @@ TopBarView::TopBarView(BRect frame)
 	BView(frame, "topBarView", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP,
 		B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
 	fGame(NULL),
-	fVisualDeckCount(0)
+	fVisualDeckCount(0),
+	fDeckTooltipView(NULL),
+	fDungeonTooltipView(NULL)
 {
 	// Solid color fallback - Draw() will paint over it
 	SetViewColor(70, 70, 90);
@@ -164,6 +178,8 @@ TopBarView::TopBarView(BRect frame)
 	float buttonSize = 50;
 	float iconBoxSize = 50;
 	float padding = 10;
+	float spacing = 8;
+	float scoreBoxWidth = 80;
 
 	// Create pause button (stone style)
 	fPauseButton = new StoneButton(
@@ -185,6 +201,25 @@ TopBarView::TopBarView(BRect frame)
 		BRect(fleeX - slashMargin, fleeY - slashMargin,
 			fleeX + buttonSize + slashMargin, fleeY + buttonSize + slashMargin));
 	AddChild(fSlashOverlay);
+
+	// Calculate icon box positions (same as Draw())
+	float totalBoxesWidth = iconBoxSize + spacing + scoreBoxWidth + spacing + iconBoxSize;
+	float leftEdge = padding + buttonSize + spacing;
+	float rightEdge = frame.Width() - padding - buttonSize - spacing;
+	float availableWidth = rightEdge - leftEdge;
+	float startX = leftEdge + (availableWidth - totalBoxesWidth) / 2;
+	float boxY = 15;
+
+	// Create tooltip view for deck icon
+	BRect deckBoxRect(startX, boxY, startX + iconBoxSize, boxY + iconBoxSize);
+	fDeckTooltipView = new IconTooltipView(deckBoxRect, "deckTooltip");
+	AddChild(fDeckTooltipView);
+
+	// Create tooltip view for dungeon icon
+	float dungeonX = startX + iconBoxSize + spacing + scoreBoxWidth + spacing;
+	BRect dungeonBoxRect(dungeonX, boxY, dungeonX + iconBoxSize, boxY + iconBoxSize);
+	fDungeonTooltipView = new IconTooltipView(dungeonBoxRect, "dungeonTooltip");
+	AddChild(fDungeonTooltipView);
 }
 
 
@@ -394,6 +429,7 @@ TopBarView::Refresh()
 	if (slash != NULL)
 		slash->SetSlashVisible(!canFlee, fFleeButton);
 
+	UpdateTooltips();
 	Invalidate();
 }
 
@@ -424,4 +460,28 @@ TopBarView::SyncVisualDeckCount()
 		fVisualDeckCount = fGame->GetDeck()->CardsRemaining();
 	else
 		fVisualDeckCount = 0;
+}
+
+
+void
+TopBarView::UpdateTooltips()
+{
+	if (fGame == NULL)
+		return;
+
+	// Update deck tooltip
+	if (fDeckTooltipView != NULL) {
+		BString deckTip;
+		int deckCount = fGame->GetDeck()->CardsRemaining();
+		deckTip.SetToFormat("%d cards in deck", deckCount);
+		fDeckTooltipView->SetToolTip(deckTip.String());
+	}
+
+	// Update dungeon tooltip
+	if (fDungeonTooltipView != NULL) {
+		BString dungeonTip;
+		int dungeonsBeaten = fGame->DungeonDepth();
+		dungeonTip.SetToFormat("%d dungeons beat", dungeonsBeaten);
+		fDungeonTooltipView->SetToolTip(dungeonTip.String());
+	}
 }

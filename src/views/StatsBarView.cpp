@@ -4,16 +4,41 @@
 #include "utils/Constants.h"
 
 #include <Bitmap.h>
+#include <String.h>
 #include <Window.h>
+
+
+// Transparent view that provides tooltip for an icon box
+class StatsTooltipView : public BView {
+public:
+	StatsTooltipView(BRect frame, const char* name)
+		: BView(frame, name, B_FOLLOW_NONE, 0)
+	{
+		SetViewColor(B_TRANSPARENT_COLOR);
+	}
+};
+
 
 StatsBarView::StatsBarView(BRect frame)
 	:
 	BView(frame, "statsBarView", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM,
 		B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
-	fPlayer(NULL)
+	fPlayer(NULL),
+	fSwordTooltipView(NULL)
 {
 	// Solid color fallback - Draw() will paint over it
 	SetViewColor(80, 60, 40);
+
+	// Create tooltip view for sword icon (same position as Draw())
+	float padding = 15;
+	float iconBoxSize = 50;
+	float healthY = 10;
+	float weaponY = healthY + iconBoxSize + 10;
+	float swordX = padding + iconBoxSize + 8;
+
+	BRect swordBoxRect(swordX, weaponY, swordX + iconBoxSize, weaponY + iconBoxSize);
+	fSwordTooltipView = new StatsTooltipView(swordBoxRect, "swordTooltip");
+	AddChild(fSwordTooltipView);
 }
 
 
@@ -33,6 +58,7 @@ StatsBarView::SetPlayer(Player* player)
 void
 StatsBarView::Refresh()
 {
+	UpdateTooltips();
 	Invalidate();
 }
 
@@ -177,4 +203,25 @@ StatsBarView::DrawProgressBar(BRect barRect, rgb_color fillColor, float fillRati
 	// Draw border
 	SetHighColor(100, 100, 110);
 	StrokeRoundRect(barRect, radius, radius);
+}
+
+
+void
+StatsBarView::UpdateTooltips()
+{
+	if (fPlayer == NULL)
+		return;
+
+	// Update sword tooltip
+	if (fSwordTooltipView != NULL) {
+		int strongestMonster = fPlayer->StrongestMonsterCanAttack();
+		BString swordTip;
+		if (strongestMonster > 0) {
+			swordTip.SetToFormat("Can attack monsters with strength %d or less",
+				strongestMonster);
+		} else {
+			swordTip = "No weapon equipped";
+		}
+		fSwordTooltipView->SetToolTip(swordTip.String());
+	}
 }

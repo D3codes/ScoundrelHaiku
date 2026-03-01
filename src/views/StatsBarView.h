@@ -20,8 +20,10 @@ private:
 	void				DrawIconBox(BRect boxRect, const char* iconName, int value);
 	void				DrawProgressBar(BRect barRect, rgb_color fillColor,
 							float fillRatio);
+	void				UpdateTooltips();
 
 	Player*				fPlayer;
+	BView*				fSwordTooltipView;
 };
 
 #endif // STATS_BAR_VIEW_H

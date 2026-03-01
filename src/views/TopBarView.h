@@ -23,10 +23,13 @@ public:
 private:
 	void				DrawIconBox(BRect boxRect, const char* iconName, int value);
 	void				DrawScoreBox(BRect boxRect);
+	void				UpdateTooltips();
 
 	BView*				fPauseButton;
 	BView*				fFleeButton;
 	BView*				fSlashOverlay;
+	BView*				fDeckTooltipView;
+	BView*				fDungeonTooltipView;
 
 	Game*				fGame;
 	int					fVisualDeckCount;
