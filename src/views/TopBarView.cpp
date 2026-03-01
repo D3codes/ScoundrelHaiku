@@ -107,7 +107,8 @@ public:
 		: BView(frame, "slashOverlay", B_FOLLOW_NONE, B_WILL_DRAW),
 		  fVisible(false)
 	{
-		SetViewColor(B_TRANSPARENT_COLOR);
+		// Use parent's view color so Haiku knows how to repaint this area
+		SetViewColor(B_TRANSPARENT_32_BIT);
 	}
 
 	virtual void Draw(BRect updateRect) {
@@ -131,21 +132,15 @@ public:
 	void SetSlashVisible(bool visible, BView* buttonView = NULL) {
 		if (fVisible != visible) {
 			fVisible = visible;
-			if (visible) {
-				if (IsHidden())
-					Show();
-			} else {
-				if (!IsHidden())
-					Hide();
-				// Invalidate parent area to clear the slash and button corners
-				if (Parent() != NULL) {
-					Parent()->Invalidate(Frame());
-					if (buttonView != NULL) {
-						Parent()->Invalidate(buttonView->Frame());
-					}
+			// Invalidate to redraw (either show or hide the slash)
+			Invalidate();
+			// Also invalidate parent and button areas to ensure clean redraw
+			if (Parent() != NULL) {
+				Parent()->Invalidate(Frame());
+				if (buttonView != NULL) {
+					Parent()->Invalidate(buttonView->Frame());
 				}
 			}
-			Invalidate();
 		}
 	}
 
