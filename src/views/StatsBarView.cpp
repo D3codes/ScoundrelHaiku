@@ -25,15 +25,6 @@ StatsBarView::~StatsBarView()
 
 
 void
-StatsBarView::AttachedToWindow()
-{
-	BView::AttachedToWindow();
-	// Test: set a static tooltip to verify tooltips work
-	SetToolTip("Stats bar test tooltip");
-}
-
-
-void
 StatsBarView::SetPlayer(Player* player)
 {
 	fPlayer = player;
@@ -188,53 +179,4 @@ StatsBarView::DrawProgressBar(BRect barRect, rgb_color fillColor, float fillRati
 	// Draw border
 	SetHighColor(100, 100, 110);
 	StrokeRoundRect(barRect, radius, radius);
-}
-
-
-BRect
-StatsBarView::GetSwordBoxRect()
-{
-	float padding = 15;
-	float iconBoxSize = 50;
-	float healthY = 10;
-	float weaponY = healthY + iconBoxSize + 10;
-	float swordX = padding + iconBoxSize + 8;
-
-	return BRect(swordX, weaponY, swordX + iconBoxSize, weaponY + iconBoxSize);
-}
-
-
-void
-StatsBarView::MouseMoved(BPoint where, uint32 transit, const BMessage* dragMessage)
-{
-	UpdateTooltipForPoint(where);
-	BView::MouseMoved(where, transit, dragMessage);
-}
-
-
-void
-StatsBarView::UpdateTooltipForPoint(BPoint point)
-{
-	if (fPlayer == NULL) {
-		SetToolTip((const char*)NULL);
-		return;
-	}
-
-	// Check if hovering over sword icon
-	BRect swordRect = GetSwordBoxRect();
-	if (swordRect.Contains(point)) {
-		int strongestMonster = fPlayer->StrongestMonsterCanAttack();
-		BString tipText;
-		if (strongestMonster > 0) {
-			tipText.SetToFormat("Can attack monsters with strength %d or less",
-				strongestMonster);
-		} else {
-			tipText = "No weapon equipped";
-		}
-		SetToolTip(tipText.String());
-		return;
-	}
-
-	// Not over any icon, clear tooltip
-	SetToolTip((const char*)NULL);
 }

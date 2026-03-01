@@ -13,8 +13,6 @@ public:
 	virtual void		Draw(BRect updateRect);
 	virtual void		AttachedToWindow();
 	virtual void		MessageReceived(BMessage* message);
-	virtual void		MouseMoved(BPoint where, uint32 transit,
-							const BMessage* dragMessage);
 
 	void				SetGame(Game* game);
 	void				Refresh();
@@ -25,9 +23,6 @@ public:
 private:
 	void				DrawIconBox(BRect boxRect, const char* iconName, int value);
 	void				DrawScoreBox(BRect boxRect);
-	BRect				GetDeckBoxRect();
-	BRect				GetDungeonBoxRect();
-	void				UpdateTooltipForPoint(BPoint point);
 
 	BView*				fPauseButton;
 	BView*				fFleeButton;

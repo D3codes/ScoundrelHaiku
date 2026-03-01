@@ -8,6 +8,8 @@
 #include <String.h>
 #include <Window.h>
 
+#include <string.h>
+
 
 // Custom stone-style button
 class StoneButton : public BView {
@@ -197,8 +199,6 @@ void
 TopBarView::AttachedToWindow()
 {
 	BView::AttachedToWindow();
-	// Test: set a static tooltip to verify tooltips work
-	SetToolTip("Top bar test tooltip");
 }
 
 
@@ -263,11 +263,11 @@ TopBarView::Draw(BRect updateRect)
 	BRect scoreBoxRect(scoreX, boxY, scoreX + scoreBoxWidth, boxY + iconBoxSize);
 	DrawScoreBox(scoreBoxRect);
 
-	// Draw dungeon icon box
+	// Draw dungeon icon box (shows dungeons beaten, starts at 0)
 	float dungeonX = scoreBoxRect.right + spacing;
 	BRect dungeonBoxRect(dungeonX, boxY, dungeonX + iconBoxSize, boxY + iconBoxSize);
 	DrawIconBox(dungeonBoxRect, "dungeonGlyph",
-		fGame != NULL ? fGame->DungeonDepth() + 1 : 1);
+		fGame != NULL ? fGame->DungeonDepth() : 0);
 }
 
 
@@ -284,10 +284,13 @@ TopBarView::DrawIconBox(BRect boxRect, const char* iconName, int value)
 	StrokeRoundRect(boxRect, 10, 10);
 	SetPenSize(1);
 
-	// Draw icon
+	// Draw icon - deck icon is larger
 	float iconSize = 30;
+	if (strcmp(iconName, "deck") == 0)
+		iconSize = 38;
+
 	float iconX = boxRect.left + (boxRect.Width() - iconSize) / 2;
-	float iconY = boxRect.top + 5;
+	float iconY = boxRect.top + 3;
 
 	BBitmap* icon = ResourceLoader::Instance()->GetGlyph(iconName);
 	if (icon != NULL) {
@@ -426,88 +429,4 @@ TopBarView::SyncVisualDeckCount()
 		fVisualDeckCount = fGame->GetDeck()->CardsRemaining();
 	else
 		fVisualDeckCount = 0;
-}
-
-
-BRect
-TopBarView::GetDeckBoxRect()
-{
-	BRect bounds = Bounds();
-	float iconBoxSize = 50;
-	float buttonSize = 50;
-	float padding = 10;
-	float spacing = 8;
-	float scoreBoxWidth = 80;
-
-	float totalBoxesWidth = iconBoxSize + spacing + scoreBoxWidth + spacing + iconBoxSize;
-	float leftEdge = padding + buttonSize + spacing;
-	float rightEdge = bounds.Width() - padding - buttonSize - spacing;
-	float availableWidth = rightEdge - leftEdge;
-	float startX = leftEdge + (availableWidth - totalBoxesWidth) / 2;
-	float boxY = 15;
-
-	return BRect(startX, boxY, startX + iconBoxSize, boxY + iconBoxSize);
-}
-
-
-BRect
-TopBarView::GetDungeonBoxRect()
-{
-	BRect bounds = Bounds();
-	float iconBoxSize = 50;
-	float buttonSize = 50;
-	float padding = 10;
-	float spacing = 8;
-	float scoreBoxWidth = 80;
-
-	float totalBoxesWidth = iconBoxSize + spacing + scoreBoxWidth + spacing + iconBoxSize;
-	float leftEdge = padding + buttonSize + spacing;
-	float rightEdge = bounds.Width() - padding - buttonSize - spacing;
-	float availableWidth = rightEdge - leftEdge;
-	float startX = leftEdge + (availableWidth - totalBoxesWidth) / 2;
-	float boxY = 15;
-
-	float dungeonX = startX + iconBoxSize + spacing + scoreBoxWidth + spacing;
-	return BRect(dungeonX, boxY, dungeonX + iconBoxSize, boxY + iconBoxSize);
-}
-
-
-void
-TopBarView::MouseMoved(BPoint where, uint32 transit, const BMessage* dragMessage)
-{
-	UpdateTooltipForPoint(where);
-	BView::MouseMoved(where, transit, dragMessage);
-}
-
-
-void
-TopBarView::UpdateTooltipForPoint(BPoint point)
-{
-	if (fGame == NULL) {
-		SetToolTip((const char*)NULL);
-		return;
-	}
-
-	// Check if hovering over deck icon
-	BRect deckRect = GetDeckBoxRect();
-	if (deckRect.Contains(point)) {
-		BString tipText;
-		int deckCount = fGame->GetDeck()->CardsRemaining();
-		tipText.SetToFormat("%d cards in deck", deckCount);
-		SetToolTip(tipText.String());
-		return;
-	}
-
-	// Check if hovering over dungeon icon
-	BRect dungeonRect = GetDungeonBoxRect();
-	if (dungeonRect.Contains(point)) {
-		BString tipText;
-		int dungeonsBeaten = fGame->DungeonDepth();
-		tipText.SetToFormat("%d dungeons beat", dungeonsBeaten);
-		SetToolTip(tipText.String());
-		return;
-	}
-
-	// Not over any icon, clear tooltip
-	SetToolTip((const char*)NULL);
 }
