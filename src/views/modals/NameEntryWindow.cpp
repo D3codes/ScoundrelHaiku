@@ -297,6 +297,9 @@ NameEntryWindow::MessageReceived(BMessage* message)
 				if (name == NULL || name[0] == '\0')
 					name = "Player";
 				HighScoreManager::Instance()->AddScore(name, fScore, fDungeonsBeaten);
+
+				// Open high scores window to show the new entry
+				fParent->PostMessage(new BMessage(kMsgHighScores));
 			}
 
 			// Go to main menu
@@ -312,6 +315,9 @@ NameEntryWindow::MessageReceived(BMessage* message)
 				if (name == NULL || name[0] == '\0')
 					name = "Player";
 				HighScoreManager::Instance()->AddScore(name, fScore, fDungeonsBeaten);
+
+				// Open high scores window to show the new entry
+				fParent->PostMessage(new BMessage(kMsgHighScores));
 			}
 
 			// Start new game
