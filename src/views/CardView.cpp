@@ -113,7 +113,18 @@ CardView::DrawCard()
 	BRect bounds = Bounds();
 	float radius = 12;
 
-	// Shadow is drawn by parent RoomView to avoid clipping issues
+	// First draw dungeon background to fill the view (for transparent corners)
+	DrawEmptySlot();
+
+	// Draw shadow strips on right and bottom edges only
+	SetHighColor(0, 0, 0, 100);
+	// Right edge shadow
+	FillRect(BRect(bounds.right - 3, 4, bounds.right, bounds.bottom - 4));
+	// Bottom edge shadow
+	FillRect(BRect(4, bounds.bottom - 3, bounds.right - 4, bounds.bottom));
+	// Bottom-right corner shadow (rounded)
+	FillRoundRect(BRect(bounds.right - radius, bounds.bottom - radius,
+		bounds.right, bounds.bottom), 6, 6);
 
 	// Fill card background
 	SetHighColor(kCardBackgroundColor);

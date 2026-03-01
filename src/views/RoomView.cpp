@@ -162,19 +162,6 @@ RoomView::Draw(BRect updateRect)
 		DrawBitmap(background, ourSrcRect, bounds);
 	}
 
-	// Draw shadows for visible (non-animating) cards
-	for (int i = 0; i < 4; i++) {
-		if (!fCardViews[i]->IsHidden() && fCardViews[i]->GetCard() != NULL) {
-			BRect cardFrame = fCardViews[i]->Frame();
-			// Expand shadow slightly and use smaller radius to fill corner gaps
-			BRect shadowRect = cardFrame;
-			shadowRect.right += 4;
-			shadowRect.bottom += 4;
-			SetHighColor(0, 0, 0, 100);
-			FillRoundRect(shadowRect, 8, 8);
-		}
-	}
-
 	// Draw flee animations (cards going back to deck)
 	for (int i = 0; i < 4; i++) {
 		if (fFleeAnimations[i].active) {
