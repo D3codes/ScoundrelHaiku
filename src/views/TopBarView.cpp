@@ -74,20 +74,6 @@ public:
 			SetHighColor(0, 0, 0);
 		}
 		DrawString(fLabel.String(), BPoint(textX, textY));
-
-		// Draw white slash over disabled button with drop shadow
-		if (!fEnabled) {
-			SetPenSize(5);
-			// Shadow
-			SetHighColor(0, 0, 0, 180);
-			StrokeLine(BPoint(bounds.left - 8 + 2, bounds.bottom + 8 + 2),
-				BPoint(bounds.right + 8 + 2, bounds.top - 8 + 2));
-			// White slash
-			SetHighColor(255, 255, 255);
-			StrokeLine(BPoint(bounds.left - 8, bounds.bottom + 8),
-				BPoint(bounds.right + 8, bounds.top - 8));
-			SetPenSize(1);
-		}
 	}
 
 	virtual void MouseDown(BPoint where) {
@@ -98,12 +84,6 @@ public:
 	void SetEnabled(bool enabled) {
 		if (fEnabled != enabled) {
 			fEnabled = enabled;
-			// Invalidate parent area too since slash extends outside our bounds
-			if (Parent() != NULL) {
-				BRect slashRect = Frame();
-				slashRect.InsetBy(-10, -10);
-				Parent()->Invalidate(slashRect);
-			}
 			Invalidate();
 		}
 	}
@@ -114,6 +94,45 @@ private:
 	BString fLabel;
 	BMessage* fMessage;
 	bool fEnabled;
+};
+
+
+// Overlay view that draws a slash over the flee button when disabled
+class SlashOverlay : public BView {
+public:
+	SlashOverlay(BRect frame)
+		: BView(frame, "slashOverlay", B_FOLLOW_NONE, B_WILL_DRAW),
+		  fVisible(false)
+	{
+		SetViewColor(B_TRANSPARENT_COLOR);
+	}
+
+	virtual void Draw(BRect updateRect) {
+		if (!fVisible)
+			return;
+
+		BRect bounds = Bounds();
+		SetPenSize(5);
+		// Shadow
+		SetHighColor(0, 0, 0, 180);
+		StrokeLine(BPoint(bounds.left + 2, bounds.bottom - 2),
+			BPoint(bounds.right - 2, bounds.top + 6));
+		// White slash
+		SetHighColor(255, 255, 255);
+		StrokeLine(BPoint(bounds.left, bounds.bottom - 4),
+			BPoint(bounds.right - 4, bounds.top + 4));
+		SetPenSize(1);
+	}
+
+	void SetSlashVisible(bool visible) {
+		if (fVisible != visible) {
+			fVisible = visible;
+			Invalidate();
+		}
+	}
+
+private:
+	bool fVisible;
 };
 
 
@@ -138,11 +157,19 @@ TopBarView::TopBarView(BRect frame)
 	AddChild(fPauseButton);
 
 	// Create flee button (stone style)
+	float fleeX = frame.Width() - padding - buttonSize;
+	float fleeY = 15;
 	fFleeButton = new StoneButton(
-		BRect(frame.Width() - padding - buttonSize, 15,
-			frame.Width() - padding, 15 + buttonSize),
+		BRect(fleeX, fleeY, fleeX + buttonSize, fleeY + buttonSize),
 		"fleeBtn", "Run", new BMessage(kMsgFlee));
 	AddChild(fFleeButton);
+
+	// Create slash overlay (added after button so it draws on top)
+	float slashMargin = 10;
+	fSlashOverlay = new SlashOverlay(
+		BRect(fleeX - slashMargin, fleeY - slashMargin,
+			fleeX + buttonSize + slashMargin, fleeY + buttonSize + slashMargin));
+	AddChild(fSlashOverlay);
 }
 
 
@@ -342,9 +369,15 @@ TopBarView::Refresh()
 		return;
 
 	// Update flee button state
+	bool canFlee = fGame->GetRoom()->CanFlee();
 	StoneButton* fleeBtn = dynamic_cast<StoneButton*>(fFleeButton);
 	if (fleeBtn != NULL)
-		fleeBtn->SetEnabled(fGame->GetRoom()->CanFlee());
+		fleeBtn->SetEnabled(canFlee);
+
+	// Update slash overlay visibility
+	SlashOverlay* slash = dynamic_cast<SlashOverlay*>(fSlashOverlay);
+	if (slash != NULL)
+		slash->SetSlashVisible(!canFlee);
 
 	Invalidate();
 }

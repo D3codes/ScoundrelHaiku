@@ -26,6 +26,7 @@ private:
 
 	BView*				fPauseButton;
 	BView*				fFleeButton;
+	BView*				fSlashOverlay;
 
 	Game*				fGame;
 	int					fVisualDeckCount;
