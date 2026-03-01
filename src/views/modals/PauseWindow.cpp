@@ -36,14 +36,14 @@ public:
 
 		// Draw title "Pause"
 		BFont titleFont;
-		titleFont.SetSize(36);
+		titleFont.SetSize(32);
 		titleFont.SetFace(B_BOLD_FACE);
 		SetFont(&titleFont);
 		SetHighColor(kDarkTextColor);
 
 		const char* title = "Paused";
 		float titleWidth = StringWidth(title);
-		DrawString(title, BPoint(bounds.Width() / 2 - titleWidth / 2, 60));
+		DrawString(title, BPoint(bounds.Width() / 2 - titleWidth / 2, 50));
 	}
 };
 
@@ -113,7 +113,7 @@ private:
 
 PauseWindow::PauseWindow(BWindow* parent)
 	:
-	BWindow(BRect(0, 0, 300, 450), "Paused",
+	BWindow(BRect(0, 0, 220, 295), "Paused",
 		B_MODAL_WINDOW_LOOK, B_MODAL_SUBSET_WINDOW_FEEL,
 		B_NOT_RESIZABLE | B_NOT_ZOOMABLE),
 	fParent(parent)
@@ -133,10 +133,10 @@ PauseWindow::PauseWindow(BWindow* parent)
 
 	// Buttons
 	float buttonWidth = 180;
-	float buttonHeight = 40;
-	float buttonSpacing = 50;
+	float buttonHeight = 38;
+	float buttonSpacing = 45;
 	float centerX = bounds.Width() / 2;
-	float startY = 120;
+	float startY = 75;
 
 	PlankButtonPause* newGameBtn = new PlankButtonPause(
 		BRect(centerX - buttonWidth / 2, startY,
@@ -156,7 +156,7 @@ PauseWindow::PauseWindow(BWindow* parent)
 		"Main Menu", new BMessage(kMsgMainMenu));
 	mainView->AddChild(menuBtn);
 
-	float continueY = startY + buttonSpacing * 3 + 20; // Extra padding before Continue
+	float continueY = startY + buttonSpacing * 3 + 12; // Extra padding before Continue
 	PlankButtonPause* continueBtn = new PlankButtonPause(
 		BRect(centerX - buttonWidth / 2, continueY,
 			centerX + buttonWidth / 2, continueY + buttonHeight),
