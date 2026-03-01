@@ -105,8 +105,7 @@ public:
 HighScoresWindow::HighScoresWindow(BWindow* parent)
 	:
 	BWindow(BRect(0, 0, 280, 400), "High Scores",
-		B_TITLED_WINDOW, B_NORMAL_WINDOW_FEEL,
-		B_NOT_RESIZABLE | B_NOT_ZOOMABLE)
+		B_TITLED_WINDOW, B_NOT_RESIZABLE | B_NOT_ZOOMABLE)
 {
 	// Center on screen
 	BRect screenFrame = BScreen().Frame();
