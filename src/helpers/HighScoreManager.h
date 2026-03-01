@@ -19,6 +19,7 @@ public:
 	BObjectList<HighScoreEntry>* GetScores();
 	int							GetScoreCount();
 	HighScoreEntry*				GetScore(int index);
+	const char*					GetLastUsedName();
 
 	void						Load();
 	void						Save();
@@ -29,6 +30,7 @@ private:
 
 	static HighScoreManager*	sInstance;
 	BObjectList<HighScoreEntry>	fScores;
+	BString						fLastUsedName;
 };
 
 #endif // HIGH_SCORE_MANAGER_H

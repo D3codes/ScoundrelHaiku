@@ -74,21 +74,27 @@ public:
 		SetHighColor(222, 210, 190);
 		FillRect(bounds);
 
+		float leftMargin = 30;
+		float rightMargin = bounds.Width() - 30;
+
 		BFont font;
 		font.SetSize(16);
 		SetFont(&font);
 		SetHighColor(kDarkTextColor);
 
-		// Score info
-		BString scoreText;
-		scoreText.SetToFormat("Score: %d", fScore);
-		float scoreWidth = StringWidth(scoreText.String());
-		DrawString(scoreText.String(), BPoint((bounds.Width() - scoreWidth) / 2, 30));
+		// Score - label left, value right
+		DrawString("Score:", BPoint(leftMargin, 30));
+		BString scoreValue;
+		scoreValue.SetToFormat("%d", fScore);
+		float scoreWidth = StringWidth(scoreValue.String());
+		DrawString(scoreValue.String(), BPoint(rightMargin - scoreWidth, 30));
 
-		BString dungeonText;
-		dungeonText.SetToFormat("Dungeons: %d", fDungeonsBeaten);
-		float dungeonWidth = StringWidth(dungeonText.String());
-		DrawString(dungeonText.String(), BPoint((bounds.Width() - dungeonWidth) / 2, 52));
+		// Dungeons - label left, value right
+		DrawString("Dungeons:", BPoint(leftMargin, 52));
+		BString dungeonValue;
+		dungeonValue.SetToFormat("%d", fDungeonsBeaten);
+		float dungeonWidth = StringWidth(dungeonValue.String());
+		DrawString(dungeonValue.String(), BPoint(rightMargin - dungeonWidth, 52));
 
 		// Prompt
 		font.SetSize(14);
@@ -171,7 +177,7 @@ private:
 
 NameEntryWindow::NameEntryWindow(BWindow* parent, int score, int dungeonsBeaten)
 	:
-	BWindow(BRect(0, 0, 250, 240), "Game Over",
+	BWindow(BRect(0, 0, 250, 260), "Game Over",
 		B_MODAL_WINDOW_LOOK, B_MODAL_SUBSET_WINDOW_FEEL,
 		B_NOT_RESIZABLE | B_NOT_ZOOMABLE),
 	fParent(parent),
@@ -200,11 +206,16 @@ NameEntryWindow::NameEntryWindow(BWindow* parent, int score, int dungeonsBeaten)
 	GameOverContentView* contentView = new GameOverContentView(contentRect,
 		score, dungeonsBeaten);
 
+	// Determine default name - use last used name or fallback to "Player"
+	const char* defaultName = HighScoreManager::Instance()->GetLastUsedName();
+	if (defaultName == NULL)
+		defaultName = "Player";
+
 	// Add text input
 	float inputWidth = 180;
 	float inputX = (windowWidth - inputWidth) / 2;
 	fNameInput = new BTextControl(BRect(inputX, 95, inputX + inputWidth, 120),
-		"nameInput", NULL, "Player", NULL);
+		"nameInput", NULL, defaultName, NULL);
 	fNameInput->SetDivider(0);
 	contentView->AddChild(fNameInput);
 
@@ -214,12 +225,12 @@ NameEntryWindow::NameEntryWindow(BWindow* parent, int score, int dungeonsBeaten)
 	float buttonX = (windowWidth - buttonWidth) / 2;
 
 	PlankButtonGameOver* mainMenuBtn = new PlankButtonGameOver(
-		BRect(buttonX, 130, buttonX + buttonWidth, 130 + buttonHeight),
+		BRect(buttonX, 135, buttonX + buttonWidth, 135 + buttonHeight),
 		"Main Menu", new BMessage(kMsgMainMenuWithSave));
 	contentView->AddChild(mainMenuBtn);
 
 	PlankButtonGameOver* newGameBtn = new PlankButtonGameOver(
-		BRect(buttonX, 175, buttonX + buttonWidth, 175 + buttonHeight),
+		BRect(buttonX, 180, buttonX + buttonWidth, 180 + buttonHeight),
 		"New Game", new BMessage(kMsgNewGameWithSave));
 	contentView->AddChild(newGameBtn);
 

@@ -35,6 +35,9 @@ HighScoreManager::~HighScoreManager()
 void
 HighScoreManager::AddScore(const char* name, int score, int dungeonsBeaten)
 {
+	// Remember this name for next time
+	fLastUsedName = name;
+
 	HighScoreEntry* entry = new HighScoreEntry();
 	entry->name = name;
 	entry->score = score;
@@ -82,6 +85,15 @@ HighScoreManager::GetScore(int index)
 }
 
 
+const char*
+HighScoreManager::GetLastUsedName()
+{
+	if (fLastUsedName.Length() > 0)
+		return fLastUsedName.String();
+	return NULL;
+}
+
+
 void
 HighScoreManager::Load()
 {
@@ -101,6 +113,11 @@ HighScoreManager::Load()
 		return;
 
 	fScores.MakeEmpty();
+
+	// Load last used name
+	const char* lastName;
+	if (archive.FindString("lastUsedName", &lastName) == B_OK)
+		fLastUsedName = lastName;
 
 	int32 count;
 	if (archive.FindInt32("count", &count) != B_OK)
@@ -151,6 +168,10 @@ HighScoreManager::Save()
 
 	BMessage archive;
 	archive.AddInt32("count", fScores.CountItems());
+
+	// Save last used name
+	if (fLastUsedName.Length() > 0)
+		archive.AddString("lastUsedName", fLastUsedName.String());
 
 	for (int i = 0; i < fScores.CountItems(); i++) {
 		HighScoreEntry* entry = fScores.ItemAt(i);
