@@ -207,13 +207,7 @@ RoomView::DrawAnimatingCard(CardAnimation& anim)
 
 	float radius = 12 * scale;
 
-	// Draw card shadow
-	SetHighColor(0, 0, 0, 100);
-	BRect shadowRect = cardRect;
-	shadowRect.OffsetBy(4 * scale, 4 * scale);
-	FillRoundRect(shadowRect, radius, radius);
-
-	// Fill card background
+	// Fill card background (no shadow during animation to avoid artifacts)
 	SetHighColor(kCardBackgroundColor);
 	FillRoundRect(cardRect, radius, radius);
 

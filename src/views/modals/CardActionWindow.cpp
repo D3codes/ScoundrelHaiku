@@ -114,6 +114,12 @@ public:
 		BRect cardRect((bounds.Width() - cardWidth) / 2, 15,
 			(bounds.Width() + cardWidth) / 2, 15 + cardHeight);
 
+		// Draw card shadow
+		SetHighColor(0, 0, 0, 100);
+		BRect shadowRect = cardRect;
+		shadowRect.OffsetBy(4, 4);
+		FillRoundRect(shadowRect, cardRadius, cardRadius);
+
 		// Fill card background
 		SetHighColor(kCardBackgroundColor);
 		FillRoundRect(cardRect, cardRadius, cardRadius);
@@ -136,24 +142,29 @@ public:
 
 		// Stroke card border
 		SetHighColor(180, 170, 150);
-		SetPenSize(2);
 		StrokeRoundRect(cardRect, cardRadius, cardRadius);
-		SetPenSize(1);
 
 		// Draw card image
 		BBitmap* cardImage = ResourceLoader::Instance()->GetCardImage(
 			fCard->GetImageName().String());
 
+		float bottomAreaHeight = 38;
+		float imageAreaHeight = cardRect.Height() - bottomAreaHeight;
+
 		if (cardImage != NULL) {
 			BRect imageRect = cardImage->Bounds();
-			float scale = 100.0f / imageRect.Width();
-			if (105.0f / imageRect.Height() < scale)
-				scale = 105.0f / imageRect.Height();
+			float padding = 8;
+			float availWidth = cardRect.Width() - padding * 2;
+			float availHeight = imageAreaHeight - padding * 2;
+
+			float scale = availWidth / imageRect.Width();
+			if (availHeight / imageRect.Height() < scale)
+				scale = availHeight / imageRect.Height();
 
 			float imageWidth = imageRect.Width() * scale;
 			float imageHeight = imageRect.Height() * scale;
 			float imageX = cardRect.left + (cardRect.Width() - imageWidth) / 2;
-			float imageY = cardRect.top + 10;
+			float imageY = cardRect.top + padding;
 
 			BRect destRect(imageX, imageY, imageX + imageWidth, imageY + imageHeight);
 			float imageRadius = 10;
@@ -179,7 +190,7 @@ public:
 		}
 
 		// Draw icon and strength at bottom of card
-		float iconSize = 28;
+		float iconSize = 32;
 		BBitmap* icon = ResourceLoader::Instance()->GetGlyph(
 			fCard->GetIconName().String());
 
@@ -187,14 +198,14 @@ public:
 		strengthStr.SetToFormat("%d", fCard->Strength());
 
 		BFont font;
-		font.SetSize(24);
+		font.SetSize(28);
 		font.SetFace(B_BOLD_FACE);
 		SetFont(&font);
 
 		float textWidth = StringWidth(strengthStr.String());
 		float contentWidth = iconSize + 6 + textWidth;
 		float startX = cardRect.left + (cardRect.Width() - contentWidth) / 2;
-		float bottomY = cardRect.bottom - 6;
+		float bottomY = cardRect.bottom - 4;
 
 		if (icon != NULL) {
 			BRect iconRect = icon->Bounds();
