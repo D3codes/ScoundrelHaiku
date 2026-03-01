@@ -1,5 +1,4 @@
 #include "PauseWindow.h"
-#include "HowToPlayWindow.h"
 #include "helpers/ResourceLoader.h"
 #include "utils/Constants.h"
 #include "utils/MessageCodes.h"
@@ -235,11 +234,9 @@ PauseWindow::MessageReceived(BMessage* message)
 			PostMessage(B_QUIT_REQUESTED);
 			break;
 		case kMsgHowToPlay:
-		{
-			HowToPlayWindow* howToPlay = new HowToPlayWindow(this);
-			howToPlay->Show();
+			// Forward to parent GameWindow which manages the singleton window
+			fParent->PostMessage(message);
 			break;
-		}
 		default:
 			BWindow::MessageReceived(message);
 			break;
