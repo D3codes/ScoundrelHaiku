@@ -23,13 +23,14 @@ public:
 private:
 	void				DrawIconBox(BRect boxRect, const char* iconName, int value);
 	void				DrawScoreBox(BRect boxRect);
+	void				DrawFleeSlash();
 
 	BView*				fPauseButton;
 	BView*				fFleeButton;
-	BView*				fSlashOverlay;
 
 	Game*				fGame;
 	int					fVisualDeckCount;
+	bool				fShowSlash;
 };
 
 #endif // TOP_BAR_VIEW_H

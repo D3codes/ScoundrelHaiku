@@ -100,61 +100,13 @@ private:
 };
 
 
-// Overlay view that draws a slash over the flee button when disabled
-class SlashOverlay : public BView {
-public:
-	SlashOverlay(BRect frame)
-		: BView(frame, "slashOverlay", B_FOLLOW_NONE, B_WILL_DRAW),
-		  fVisible(false)
-	{
-		// Use parent's view color so Haiku knows how to repaint this area
-		SetViewColor(B_TRANSPARENT_32_BIT);
-	}
-
-	virtual void Draw(BRect updateRect) {
-		if (!fVisible)
-			return;
-
-		BRect bounds = Bounds();
-		float inset = 6;
-		SetPenSize(4);
-		// Shadow
-		SetHighColor(0, 0, 0, 180);
-		StrokeLine(BPoint(bounds.left + inset + 2, bounds.bottom - inset + 2),
-			BPoint(bounds.right - inset + 2, bounds.top + inset + 2));
-		// White slash
-		SetHighColor(255, 255, 255);
-		StrokeLine(BPoint(bounds.left + inset, bounds.bottom - inset),
-			BPoint(bounds.right - inset, bounds.top + inset));
-		SetPenSize(1);
-	}
-
-	void SetSlashVisible(bool visible, BView* buttonView = NULL) {
-		if (fVisible != visible) {
-			fVisible = visible;
-			// Invalidate to redraw (either show or hide the slash)
-			Invalidate();
-			// Also invalidate parent and button areas to ensure clean redraw
-			if (Parent() != NULL) {
-				Parent()->Invalidate(Frame());
-				if (buttonView != NULL) {
-					Parent()->Invalidate(buttonView->Frame());
-				}
-			}
-		}
-	}
-
-private:
-	bool fVisible;
-};
-
-
 TopBarView::TopBarView(BRect frame)
 	:
 	BView(frame, "topBarView", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP,
-		B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
+		B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE | B_DRAW_ON_CHILDREN),
 	fGame(NULL),
-	fVisualDeckCount(0)
+	fVisualDeckCount(0),
+	fShowSlash(false)
 {
 	// Solid color fallback - Draw() will paint over it
 	SetViewColor(70, 70, 90);
@@ -175,13 +127,6 @@ TopBarView::TopBarView(BRect frame)
 		BRect(fleeX, fleeY, fleeX + buttonSize, fleeY + buttonSize),
 		"fleeBtn", "Run", new BMessage(kMsgFlee));
 	AddChild(fFleeButton);
-
-	// Create slash overlay (added after button so it draws on top)
-	float slashMargin = 10;
-	fSlashOverlay = new SlashOverlay(
-		BRect(fleeX - slashMargin, fleeY - slashMargin,
-			fleeX + buttonSize + slashMargin, fleeY + buttonSize + slashMargin));
-	AddChild(fSlashOverlay);
 }
 
 
@@ -263,6 +208,10 @@ TopBarView::Draw(BRect updateRect)
 	BRect dungeonBoxRect(dungeonX, boxY, dungeonX + iconBoxSize, boxY + iconBoxSize);
 	DrawIconBox(dungeonBoxRect, "dungeonGlyph",
 		fGame != NULL ? fGame->DungeonDepth() : 0);
+
+	// Draw slash over flee button if needed
+	if (fShowSlash)
+		DrawFleeSlash();
 }
 
 
@@ -350,6 +299,30 @@ TopBarView::DrawScoreBox(BRect boxRect)
 
 
 void
+TopBarView::DrawFleeSlash()
+{
+	// Get flee button frame and expand it for the slash
+	BRect slashRect = fFleeButton->Frame();
+	slashRect.InsetBy(-10, -10);
+
+	float inset = 6;
+	SetPenSize(4);
+
+	// Shadow
+	SetHighColor(0, 0, 0, 180);
+	StrokeLine(BPoint(slashRect.left + inset + 2, slashRect.bottom - inset + 2),
+		BPoint(slashRect.right - inset + 2, slashRect.top + inset + 2));
+
+	// White slash
+	SetHighColor(255, 255, 255);
+	StrokeLine(BPoint(slashRect.left + inset, slashRect.bottom - inset),
+		BPoint(slashRect.right - inset, slashRect.top + inset));
+
+	SetPenSize(1);
+}
+
+
+void
 TopBarView::MessageReceived(BMessage* message)
 {
 	switch (message->what) {
@@ -389,10 +362,8 @@ TopBarView::Refresh()
 	if (fleeBtn != NULL)
 		fleeBtn->SetEnabled(canFlee);
 
-	// Update slash overlay visibility
-	SlashOverlay* slash = dynamic_cast<SlashOverlay*>(fSlashOverlay);
-	if (slash != NULL)
-		slash->SetSlashVisible(!canFlee, fFleeButton);
+	// Update slash visibility
+	fShowSlash = !canFlee;
 
 	Invalidate();
 }
