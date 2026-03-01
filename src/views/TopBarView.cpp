@@ -219,15 +219,11 @@ TopBarView::DrawIconBox(BRect boxRect, const char* iconName, int value)
 	SetHighColor(60, 60, 70, 180);
 	FillRoundRect(boxRect, 10, 10);
 
-	// Draw subtle border
-	SetHighColor(80, 80, 90);
+	// Draw border
+	SetHighColor(40, 40, 50);
+	SetPenSize(2);
 	StrokeRoundRect(boxRect, 10, 10);
-
-	// Draw shadow
-	SetHighColor(0, 0, 0, 80);
-	BRect shadowRect = boxRect;
-	shadowRect.OffsetBy(2, 2);
-	StrokeRoundRect(shadowRect, 10, 10);
+	SetPenSize(1);
 
 	// Draw icon
 	float iconSize = 30;
@@ -265,15 +261,11 @@ TopBarView::DrawScoreBox(BRect boxRect)
 	SetHighColor(60, 60, 70, 180);
 	FillRoundRect(boxRect, 10, 10);
 
-	// Draw subtle border
-	SetHighColor(80, 80, 90);
+	// Draw border
+	SetHighColor(40, 40, 50);
+	SetPenSize(2);
 	StrokeRoundRect(boxRect, 10, 10);
-
-	// Draw shadow
-	SetHighColor(0, 0, 0, 80);
-	BRect shadowRect = boxRect;
-	shadowRect.OffsetBy(2, 2);
-	StrokeRoundRect(shadowRect, 10, 10);
+	SetPenSize(1);
 
 	// Draw "Score" label
 	BFont font;

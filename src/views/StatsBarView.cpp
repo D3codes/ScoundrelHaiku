@@ -109,15 +109,11 @@ StatsBarView::DrawIconBox(BRect boxRect, const char* iconName, int value)
 	SetHighColor(60, 60, 70, 200);
 	FillRoundRect(boxRect, 10, 10);
 
-	// Draw subtle border
-	SetHighColor(80, 80, 90);
+	// Draw border
+	SetHighColor(40, 40, 50);
+	SetPenSize(2);
 	StrokeRoundRect(boxRect, 10, 10);
-
-	// Draw shadow
-	SetHighColor(0, 0, 0, 100);
-	BRect shadowRect = boxRect;
-	shadowRect.OffsetBy(2, 2);
-	StrokeRoundRect(shadowRect, 10, 10);
+	SetPenSize(1);
 
 	// Draw icon
 	float iconSize = 30;
@@ -156,12 +152,6 @@ StatsBarView::DrawProgressBar(BRect barRect, rgb_color fillColor, float fillRati
 	// Draw capsule background with material effect
 	SetHighColor(40, 40, 50, 200);
 	FillRoundRect(barRect, radius, radius);
-
-	// Draw shadow
-	SetHighColor(0, 0, 0, 80);
-	BRect shadowRect = barRect;
-	shadowRect.OffsetBy(1, 1);
-	StrokeRoundRect(shadowRect, radius, radius);
 
 	// Draw filled portion
 	if (fillRatio > 0) {
