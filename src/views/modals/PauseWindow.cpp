@@ -1,4 +1,5 @@
 #include "PauseWindow.h"
+#include "HowToPlayWindow.h"
 #include "helpers/ResourceLoader.h"
 #include "utils/Constants.h"
 #include "utils/MessageCodes.h"
@@ -105,7 +106,7 @@ private:
 
 PauseWindow::PauseWindow(BWindow* parent)
 	:
-	BWindow(BRect(0, 0, 300, 400), "Paused",
+	BWindow(BRect(0, 0, 300, 450), "Paused",
 		B_MODAL_WINDOW_LOOK, B_MODAL_SUBSET_WINDOW_FEEL,
 		B_NOT_RESIZABLE | B_NOT_ZOOMABLE),
 	fParent(parent)
@@ -123,28 +124,36 @@ PauseWindow::PauseWindow(BWindow* parent)
 	BRect bounds = Bounds();
 	PauseView* mainView = new PauseView(bounds);
 
-	// Buttons (order matches iOS: Main Menu, New Game, Continue)
+	// Buttons
 	float buttonWidth = 180;
 	float buttonHeight = 40;
+	float buttonSpacing = 50;
 	float centerX = bounds.Width() / 2;
+	float startY = 120;
 
-	PlankButtonPause* menuBtn = new PlankButtonPause(
-		BRect(centerX - buttonWidth / 2, 180,
-			centerX + buttonWidth / 2, 180 + buttonHeight),
-		"Main Menu", new BMessage(kMsgMainMenu));
-	mainView->AddChild(menuBtn);
+	PlankButtonPause* continueBtn = new PlankButtonPause(
+		BRect(centerX - buttonWidth / 2, startY,
+			centerX + buttonWidth / 2, startY + buttonHeight),
+		"Continue", new BMessage(kMsgContinue));
+	mainView->AddChild(continueBtn);
 
 	PlankButtonPause* newGameBtn = new PlankButtonPause(
-		BRect(centerX - buttonWidth / 2, 230,
-			centerX + buttonWidth / 2, 230 + buttonHeight),
+		BRect(centerX - buttonWidth / 2, startY + buttonSpacing,
+			centerX + buttonWidth / 2, startY + buttonSpacing + buttonHeight),
 		"New Game", new BMessage(kMsgNewGame));
 	mainView->AddChild(newGameBtn);
 
-	PlankButtonPause* continueBtn = new PlankButtonPause(
-		BRect(centerX - buttonWidth / 2, 300,
-			centerX + buttonWidth / 2, 300 + buttonHeight),
-		"Continue", new BMessage(kMsgContinue));
-	mainView->AddChild(continueBtn);
+	PlankButtonPause* howToPlayBtn = new PlankButtonPause(
+		BRect(centerX - buttonWidth / 2, startY + buttonSpacing * 2,
+			centerX + buttonWidth / 2, startY + buttonSpacing * 2 + buttonHeight),
+		"How to Play", new BMessage(kMsgHowToPlay));
+	mainView->AddChild(howToPlayBtn);
+
+	PlankButtonPause* menuBtn = new PlankButtonPause(
+		BRect(centerX - buttonWidth / 2, startY + buttonSpacing * 3,
+			centerX + buttonWidth / 2, startY + buttonSpacing * 3 + buttonHeight),
+		"Main Menu", new BMessage(kMsgMainMenu));
+	mainView->AddChild(menuBtn);
 
 	AddChild(mainView);
 }
@@ -165,6 +174,12 @@ PauseWindow::MessageReceived(BMessage* message)
 			fParent->PostMessage(message);
 			PostMessage(B_QUIT_REQUESTED);
 			break;
+		case kMsgHowToPlay:
+		{
+			HowToPlayWindow* howToPlay = new HowToPlayWindow(this);
+			howToPlay->Show();
+			break;
+		}
 		default:
 			BWindow::MessageReceived(message);
 			break;
