@@ -150,17 +150,20 @@ public:
 			BRect destRect(imageX, imageY, imageX + imageWidth, imageY + imageHeight);
 			float imageRadius = 12;
 
-			// Draw image first, inset enough to hide sharp corners under the rounded border
-			BRect insetDestRect = destRect.InsetByCopy(4, 4);
+			// Fill rounded rect background first
+			SetHighColor(kCardBackgroundColor);
+			FillRoundRect(destRect, imageRadius, imageRadius);
+
+			// Draw image inset so rounded background corners show around sharp image edges
+			float imageMargin = 6;
+			BRect insetDestRect = destRect.InsetByCopy(imageMargin, imageMargin);
 			SetDrawingMode(B_OP_ALPHA);
 			DrawBitmap(cardImage, imageRect, insetDestRect);
 			SetDrawingMode(B_OP_COPY);
 
-			// Draw rounded border frame that covers image corners
+			// Stroke the rounded border
 			SetHighColor(160, 150, 130);
-			SetPenSize(4);
 			StrokeRoundRect(destRect, imageRadius, imageRadius);
-			SetPenSize(1);
 		}
 
 		// Draw icon and strength at bottom of card
