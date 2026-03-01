@@ -52,12 +52,56 @@ Room::Room(const BMessage* archive)
 }
 
 
+Room::Room(const Room& other)
+	:
+	fCanFlee(other.fCanFlee),
+	fUsedHealthPotion(other.fUsedHealthPotion),
+	fPlayerFled(other.fPlayerFled),
+	fHasInteracted(other.fHasInteracted)
+{
+	for (int i = 0; i < kRoomSize; i++) {
+		if (other.fCards[i] != NULL)
+			fCards[i] = new Card(*other.fCards[i]);
+		else
+			fCards[i] = NULL;
+		fDestinations[i] = other.fDestinations[i];
+	}
+}
+
+
 Room::~Room()
 {
 	for (int i = 0; i < kRoomSize; i++) {
 		delete fCards[i];
 		fCards[i] = NULL;
 	}
+}
+
+
+Room&
+Room::operator=(const Room& other)
+{
+	if (this != &other) {
+		// Delete existing cards
+		for (int i = 0; i < kRoomSize; i++) {
+			delete fCards[i];
+		}
+
+		// Copy from other
+		fCanFlee = other.fCanFlee;
+		fUsedHealthPotion = other.fUsedHealthPotion;
+		fPlayerFled = other.fPlayerFled;
+		fHasInteracted = other.fHasInteracted;
+
+		for (int i = 0; i < kRoomSize; i++) {
+			if (other.fCards[i] != NULL)
+				fCards[i] = new Card(*other.fCards[i]);
+			else
+				fCards[i] = NULL;
+			fDestinations[i] = other.fDestinations[i];
+		}
+	}
+	return *this;
 }
 
 

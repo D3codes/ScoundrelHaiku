@@ -27,9 +27,40 @@ Deck::Deck(const BMessage* archive)
 }
 
 
+Deck::Deck(const Deck& other)
+	:
+	fCards(20, true)
+{
+	// Deep copy all cards
+	for (int i = 0; i < other.fCards.CountItems(); i++) {
+		Card* card = other.fCards.ItemAt(i);
+		if (card != NULL)
+			fCards.AddItem(new Card(*card));
+	}
+}
+
+
 Deck::~Deck()
 {
 	// BObjectList will delete all cards
+}
+
+
+Deck&
+Deck::operator=(const Deck& other)
+{
+	if (this != &other) {
+		// Clear existing cards (BObjectList will delete them)
+		fCards.MakeEmpty();
+
+		// Deep copy all cards from other
+		for (int i = 0; i < other.fCards.CountItems(); i++) {
+			Card* card = other.fCards.ItemAt(i);
+			if (card != NULL)
+				fCards.AddItem(new Card(*card));
+		}
+	}
+	return *this;
 }
 
 

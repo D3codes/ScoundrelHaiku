@@ -10,7 +10,10 @@ class Deck {
 public:
 						Deck();
 						Deck(const BMessage* archive);
+						Deck(const Deck& other);
 						~Deck();
+
+	Deck&				operator=(const Deck& other);
 
 	void				Reset();
 	void				Shuffle();

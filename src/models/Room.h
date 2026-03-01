@@ -18,7 +18,10 @@ class Room {
 public:
 						Room();
 						Room(const BMessage* archive);
+						Room(const Room& other);
 						~Room();
+
+	Room&				operator=(const Room& other);
 
 	void				Reset(Deck* deck);
 	void				NextRoom(Deck* deck, bool fledLastRoom);
