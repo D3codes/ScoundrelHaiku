@@ -114,12 +114,6 @@ public:
 		BRect cardRect((bounds.Width() - cardWidth) / 2, 15,
 			(bounds.Width() + cardWidth) / 2, 15 + cardHeight);
 
-		// Draw card shadow
-		SetHighColor(0, 0, 0, 100);
-		BRect shadowRect = cardRect;
-		shadowRect.OffsetBy(4, 4);
-		FillRoundRect(shadowRect, cardRadius, cardRadius);
-
 		// Fill card background
 		SetHighColor(kCardBackgroundColor);
 		FillRoundRect(cardRect, cardRadius, cardRadius);
@@ -140,9 +134,11 @@ public:
 			ClipToPicture(NULL);
 		}
 
-		// Stroke card border
-		SetHighColor(180, 170, 150);
+		// Stroke darker card border
+		SetHighColor(80, 70, 60);
+		SetPenSize(2);
 		StrokeRoundRect(cardRect, cardRadius, cardRadius);
+		SetPenSize(1);
 
 		// Draw card image
 		BBitmap* cardImage = ResourceLoader::Instance()->GetCardImage(

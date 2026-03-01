@@ -227,9 +227,11 @@ RoomView::DrawAnimatingCard(CardAnimation& anim)
 		ClipToPicture(NULL);
 	}
 
-	// Stroke card border
-	SetHighColor(180, 170, 150);
+	// Stroke darker card border
+	SetHighColor(80, 70, 60);
+	SetPenSize(2 * scale);
 	StrokeRoundRect(cardRect, radius, radius);
+	SetPenSize(1);
 
 	// Draw card image
 	BBitmap* cardImage = ResourceLoader::Instance()->GetCardImage(
