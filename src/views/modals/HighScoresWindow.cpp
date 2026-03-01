@@ -4,86 +4,11 @@
 #include "utils/Constants.h"
 
 #include <Bitmap.h>
+#include <Screen.h>
 #include <ScrollView.h>
 #include <String.h>
 #include <StringView.h>
 #include <View.h>
-
-
-// Title bar with close button
-class HighScoresTitleBar : public BView {
-public:
-	HighScoresTitleBar(BRect frame)
-		: BView(frame, "titleBar", B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP, B_WILL_DRAW)
-	{
-		SetViewColor(B_TRANSPARENT_COLOR);
-	}
-
-	virtual void Draw(BRect updateRect) {
-		BRect bounds = Bounds();
-
-		// Draw stone background
-		BBitmap* stoneBg = ResourceLoader::Instance()->GetUIImage("stoneSlab2");
-		if (stoneBg != NULL) {
-			SetDrawingMode(B_OP_COPY);
-			DrawBitmap(stoneBg, stoneBg->Bounds(), bounds);
-		} else {
-			SetHighColor(80, 80, 100);
-			FillRect(bounds);
-		}
-
-		// Draw close button (X) on the left
-		float buttonSize = 30;
-		float buttonMargin = 5;
-		BRect closeRect(buttonMargin, (bounds.Height() - buttonSize) / 2,
-			buttonMargin + buttonSize, (bounds.Height() + buttonSize) / 2);
-
-		SetHighColor(60, 60, 80);
-		FillRoundRect(closeRect, 5, 5);
-		SetHighColor(100, 100, 120);
-		StrokeRoundRect(closeRect, 5, 5);
-
-		// Draw X
-		SetHighColor(kTextColor);
-		SetPenSize(2);
-		float inset = 8;
-		StrokeLine(BPoint(closeRect.left + inset, closeRect.top + inset),
-			BPoint(closeRect.right - inset, closeRect.bottom - inset));
-		StrokeLine(BPoint(closeRect.right - inset, closeRect.top + inset),
-			BPoint(closeRect.left + inset, closeRect.bottom - inset));
-		SetPenSize(1);
-
-		// Draw title centered
-		BFont font;
-		font.SetSize(20);
-		font.SetFace(B_BOLD_FACE);
-		SetFont(&font);
-
-		const char* title = "High Scores";
-		float titleWidth = StringWidth(title);
-		float titleX = (bounds.Width() - titleWidth) / 2;
-		float titleY = bounds.Height() / 2 + 7;
-
-		// Draw shadow
-		SetHighColor(0, 0, 0, 180);
-		DrawString(title, BPoint(titleX + 2, titleY + 2));
-
-		// Draw title
-		SetHighColor(kTextColor);
-		DrawString(title, BPoint(titleX, titleY));
-	}
-
-	virtual void MouseDown(BPoint where) {
-		float buttonSize = 30;
-		float buttonMargin = 5;
-		BRect closeRect(buttonMargin, (Bounds().Height() - buttonSize) / 2,
-			buttonMargin + buttonSize, (Bounds().Height() + buttonSize) / 2);
-
-		if (closeRect.Contains(where)) {
-			Window()->PostMessage(B_QUIT_REQUESTED);
-		}
-	}
-};
 
 
 // Content view showing scores list
@@ -180,28 +105,18 @@ public:
 HighScoresWindow::HighScoresWindow(BWindow* parent)
 	:
 	BWindow(BRect(0, 0, 280, 400), "High Scores",
-		B_MODAL_WINDOW_LOOK, B_MODAL_SUBSET_WINDOW_FEEL,
-		B_NOT_RESIZABLE | B_NOT_ZOOMABLE),
-	fParent(parent)
+		B_TITLED_WINDOW, B_NORMAL_WINDOW_FEEL,
+		B_NOT_RESIZABLE | B_NOT_ZOOMABLE)
 {
-	AddToSubset(parent);
-
-	// Center on parent
-	BRect parentFrame = parent->Frame();
+	// Center on screen
+	BRect screenFrame = BScreen().Frame();
 	BRect frame = Frame();
-	float x = parentFrame.left + (parentFrame.Width() - frame.Width()) / 2;
-	float y = parentFrame.top + (parentFrame.Height() - frame.Height()) / 2;
+	float x = (screenFrame.Width() - frame.Width()) / 2;
+	float y = (screenFrame.Height() - frame.Height()) / 2;
 	MoveTo(x, y);
 
-	float titleBarHeight = 40;
-
-	// Create title bar
-	BRect titleRect(0, 0, Bounds().Width(), titleBarHeight);
-	HighScoresTitleBar* titleBar = new HighScoresTitleBar(titleRect);
-	AddChild(titleBar);
-
-	// Create content view
-	BRect contentRect(0, titleBarHeight, Bounds().Width(), Bounds().Height());
+	// Create content view (no custom title bar - use system title bar)
+	BRect contentRect = Bounds();
 	HighScoresContentView* contentView = new HighScoresContentView(contentRect);
 	AddChild(contentView);
 }
