@@ -77,6 +77,23 @@ public:
 			SetHighColor(0, 0, 0);
 		}
 		DrawString(fLabel.String(), BPoint(textX, textY));
+
+		// Draw slash over button when disabled
+		if (!fEnabled) {
+			SetPenSize(4);
+
+			// Shadow
+			SetHighColor(0, 0, 0, 180);
+			StrokeLine(BPoint(2, bounds.Height() + 2),
+				BPoint(bounds.Width() + 2, 2));
+
+			// White slash
+			SetHighColor(255, 255, 255);
+			StrokeLine(BPoint(0, bounds.Height()),
+				BPoint(bounds.Width(), 0));
+
+			SetPenSize(1);
+		}
 	}
 
 	virtual void MouseDown(BPoint where) {
