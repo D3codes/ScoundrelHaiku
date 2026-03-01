@@ -131,29 +131,30 @@ PauseWindow::PauseWindow(BWindow* parent)
 	float centerX = bounds.Width() / 2;
 	float startY = 120;
 
-	PlankButtonPause* continueBtn = new PlankButtonPause(
+	PlankButtonPause* newGameBtn = new PlankButtonPause(
 		BRect(centerX - buttonWidth / 2, startY,
 			centerX + buttonWidth / 2, startY + buttonHeight),
-		"Continue", new BMessage(kMsgContinue));
-	mainView->AddChild(continueBtn);
-
-	PlankButtonPause* newGameBtn = new PlankButtonPause(
-		BRect(centerX - buttonWidth / 2, startY + buttonSpacing,
-			centerX + buttonWidth / 2, startY + buttonSpacing + buttonHeight),
 		"New Game", new BMessage(kMsgNewGame));
 	mainView->AddChild(newGameBtn);
 
 	PlankButtonPause* howToPlayBtn = new PlankButtonPause(
-		BRect(centerX - buttonWidth / 2, startY + buttonSpacing * 2,
-			centerX + buttonWidth / 2, startY + buttonSpacing * 2 + buttonHeight),
+		BRect(centerX - buttonWidth / 2, startY + buttonSpacing,
+			centerX + buttonWidth / 2, startY + buttonSpacing + buttonHeight),
 		"How to Play", new BMessage(kMsgHowToPlay));
 	mainView->AddChild(howToPlayBtn);
 
 	PlankButtonPause* menuBtn = new PlankButtonPause(
-		BRect(centerX - buttonWidth / 2, startY + buttonSpacing * 3,
-			centerX + buttonWidth / 2, startY + buttonSpacing * 3 + buttonHeight),
+		BRect(centerX - buttonWidth / 2, startY + buttonSpacing * 2,
+			centerX + buttonWidth / 2, startY + buttonSpacing * 2 + buttonHeight),
 		"Main Menu", new BMessage(kMsgMainMenu));
 	mainView->AddChild(menuBtn);
+
+	float continueY = startY + buttonSpacing * 3 + 20; // Extra padding before Continue
+	PlankButtonPause* continueBtn = new PlankButtonPause(
+		BRect(centerX - buttonWidth / 2, continueY,
+			centerX + buttonWidth / 2, continueY + buttonHeight),
+		"Continue", new BMessage(kMsgContinue));
+	mainView->AddChild(continueBtn);
 
 	AddChild(mainView);
 }
