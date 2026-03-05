@@ -43,6 +43,7 @@ GameWindow::GameWindow()
 	if (SaveManager::Instance()->HasSavedGame()) {
 		SaveManager::Instance()->LoadGame(&fGame);
 		fMainMenuView->SetHasSavedGame(true);
+		UpdateMainMenuStats();
 	}
 
 	fShowingMenu = true;
@@ -75,7 +76,10 @@ GameWindow::ShowMainMenu()
 
 	fGameBoardView->Hide();
 	fMainMenuView->Show();
-	fMainMenuView->SetHasSavedGame(SaveManager::Instance()->HasSavedGame());
+	bool hasSaved = SaveManager::Instance()->HasSavedGame();
+	fMainMenuView->SetHasSavedGame(hasSaved);
+	if (hasSaved)
+		UpdateMainMenuStats();
 	fShowingMenu = true;
 }
 
@@ -294,6 +298,33 @@ GameWindow::ShowNameEntry()
 	// Automatically open high scores window when achieving a high score
 	if (isHighScore)
 		ShowHighScores();
+}
+
+
+void
+GameWindow::UpdateMainMenuStats()
+{
+	int deckCount = fGame.GetDeck()->CardsRemaining();
+	int score = fGame.Score();
+	int dungeon = fGame.DungeonDepth();
+	int health = fGame.GetPlayer()->Health();
+	int shield = fGame.GetPlayer()->Weapon();
+
+	// Sword shows max monster you can attack
+	// If weapon is fresh (lastAttacked > 14), can attack up to 14
+	// Otherwise can attack up to lastAttacked - 1
+	int sword = 0;
+	if (fGame.GetPlayer()->HasWeapon()) {
+		int lastAttacked = fGame.GetPlayer()->LastAttacked();
+		if (lastAttacked > kMaxMonsterStrength)
+			sword = kMaxMonsterStrength;  // Fresh weapon
+		else if (lastAttacked > kMinCardStrength)
+			sword = lastAttacked - 1;
+		else
+			sword = 0;  // Weapon broken or can't attack anymore
+	}
+
+	fMainMenuView->SetSavedGameStats(deckCount, score, dungeon, health, shield, sword);
 }
 
 

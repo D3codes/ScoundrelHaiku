@@ -36,6 +36,7 @@ private:
 	void				ShowHowToPlay();
 	void				ShowHighScores();
 	void				ShowNameEntry();
+	void				UpdateMainMenuStats();
 
 	Game				fGame;
 	MainMenuView*		fMainMenuView;
