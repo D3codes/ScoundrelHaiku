@@ -32,7 +32,7 @@ SoundPlayer::Destroy()
 SoundPlayer::SoundPlayer()
 	:
 	fCache(20, true), // owns items
-	fMuted(false)
+	fVolume(1.0)
 {
 	BPath dataPath = ResourceLoader::Instance()->GetDataPath();
 	fSoundPath = dataPath;
@@ -57,7 +57,7 @@ SoundPlayer::~SoundPlayer()
 void
 SoundPlayer::PlaySound(const char* soundName)
 {
-	if (fMuted)
+	if (fVolume <= 0.0)
 		return;
 
 	BSimpleGameSound* sound = FindCached(soundName);
@@ -67,6 +67,7 @@ SoundPlayer::PlaySound(const char* soundName)
 			return;
 	}
 
+	sound->SetGain(fVolume);
 	sound->StartPlaying();
 }
 
@@ -99,9 +100,14 @@ SoundPlayer::PlayRandomEquip()
 
 
 void
-SoundPlayer::SetMuted(bool muted)
+SoundPlayer::SetVolume(float volume)
 {
-	fMuted = muted;
+	if (volume < 0.0)
+		volume = 0.0;
+	if (volume > 1.0)
+		volume = 1.0;
+
+	fVolume = volume;
 	SaveSettings();
 }
 
@@ -124,9 +130,9 @@ SoundPlayer::LoadSettings()
 	if (archive.Unflatten(&file) != B_OK)
 		return;
 
-	bool muted;
-	if (archive.FindBool("muted", &muted) == B_OK)
-		fMuted = muted;
+	float volume;
+	if (archive.FindFloat("sfxVolume", &volume) == B_OK)
+		fVolume = volume;
 }
 
 
@@ -153,9 +159,9 @@ SoundPlayer::SaveSettings()
 	}
 	readFile.Unset();
 
-	// Update SFX muted setting
-	archive.RemoveName("muted");
-	archive.AddBool("muted", fMuted);
+	// Update SFX volume setting
+	archive.RemoveName("sfxVolume");
+	archive.AddFloat("sfxVolume", fVolume);
 
 	// Write back
 	BFile writeFile(path.Path(), B_WRITE_ONLY | B_CREATE_FILE | B_ERASE_FILE);

@@ -44,7 +44,7 @@ MusicPlayer::MusicPlayer()
 	fTracks(10, true),
 	fCurrentTrack(0),
 	fCurrentSound(NULL),
-	fMuted(false),
+	fVolume(1.0),
 	fPlaying(false)
 {
 	// Seed random number generator
@@ -98,7 +98,7 @@ MusicPlayer::MessageReceived(BMessage* message)
 void
 MusicPlayer::Start()
 {
-	if (fMuted || fPlaying)
+	if (fVolume <= 0.0 || fPlaying)
 		return;
 
 	// Pick a random starting track
@@ -127,18 +127,27 @@ MusicPlayer::Stop()
 
 
 void
-MusicPlayer::SetMuted(bool muted)
+MusicPlayer::SetVolume(float volume)
 {
-	if (fMuted == muted)
-		return;
+	if (volume < 0.0)
+		volume = 0.0;
+	if (volume > 1.0)
+		volume = 1.0;
 
-	fMuted = muted;
+	fVolume = volume;
 	SaveSettings();
 
-	if (muted) {
+	if (volume <= 0.0) {
 		Stop();
 	} else {
-		Start();
+		// Update volume on currently playing track
+		if (fCurrentSound != NULL) {
+			fCurrentSound->SetGain(fVolume);
+		}
+		// Start playing if not already
+		if (!fPlaying) {
+			Start();
+		}
 	}
 }
 
@@ -146,7 +155,7 @@ MusicPlayer::SetMuted(bool muted)
 void
 MusicPlayer::PlayCurrentTrack()
 {
-	if (fMuted || !fPlaying)
+	if (fVolume <= 0.0 || !fPlaying)
 		return;
 
 	// Stop any currently playing sound
@@ -174,7 +183,7 @@ MusicPlayer::PlayCurrentTrack()
 
 	fCurrentSound = new BFileGameSound(&ref, false);
 	if (fCurrentSound->InitCheck() == B_OK) {
-		fCurrentSound->SetGain(1.0);
+		fCurrentSound->SetGain(fVolume);
 		fCurrentSound->StartPlaying();
 	} else {
 		delete fCurrentSound;
@@ -229,9 +238,9 @@ MusicPlayer::LoadSettings()
 	if (archive.Unflatten(&file) != B_OK)
 		return;
 
-	bool muted;
-	if (archive.FindBool("musicMuted", &muted) == B_OK)
-		fMuted = muted;
+	float volume;
+	if (archive.FindFloat("musicVolume", &volume) == B_OK)
+		fVolume = volume;
 }
 
 
@@ -258,9 +267,9 @@ MusicPlayer::SaveSettings()
 	}
 	readFile.Unset();
 
-	// Update music muted setting
-	archive.RemoveName("musicMuted");
-	archive.AddBool("musicMuted", fMuted);
+	// Update music volume setting
+	archive.RemoveName("musicVolume");
+	archive.AddFloat("musicVolume", fVolume);
 
 	// Write back
 	BFile writeFile(path.Path(), B_WRITE_ONLY | B_CREATE_FILE | B_ERASE_FILE);

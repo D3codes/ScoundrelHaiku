@@ -8,40 +8,48 @@
 #include <Alert.h>
 #include <Box.h>
 #include <Button.h>
-#include <CheckBox.h>
 #include <LayoutBuilder.h>
 #include <SeparatorView.h>
+#include <Slider.h>
 #include <SpaceLayoutItem.h>
 #include <StringView.h>
 #include <View.h>
 
-static const uint32 kMsgMuteSfxChanged = 'MSFX';
-static const uint32 kMsgMuteMusicChanged = 'MMUS';
+static const uint32 kMsgSfxVolumeChanged = 'SVOL';
+static const uint32 kMsgMusicVolumeChanged = 'MVOL';
 static const uint32 kMsgResetScores = 'RSTS';
 
 
 SettingsWindow::SettingsWindow(BWindow* parent)
 	:
-	BWindow(BRect(0, 0, 300, 220), "Settings",
+	BWindow(BRect(0, 0, 350, 280), "Settings",
 		B_TITLED_WINDOW, B_NOT_RESIZABLE | B_NOT_ZOOMABLE | B_AUTO_UPDATE_SIZE_LIMITS),
 	fParent(parent)
 {
 	// Audio section
-	fMuteSfxCheckBox = new BCheckBox("muteSfxCheck", "Mute sound effects",
-		new BMessage(kMsgMuteSfxChanged));
-	fMuteSfxCheckBox->SetValue(SoundPlayer::Instance()->IsMuted() ? B_CONTROL_ON : B_CONTROL_OFF);
+	fSfxVolumeSlider = new BSlider("sfxVolume", "Sound Effects",
+		new BMessage(kMsgSfxVolumeChanged), 0, 100, B_HORIZONTAL);
+	fSfxVolumeSlider->SetValue((int32)(SoundPlayer::Instance()->Volume() * 100));
+	fSfxVolumeSlider->SetHashMarks(B_HASH_MARKS_BOTTOM);
+	fSfxVolumeSlider->SetHashMarkCount(11);
+	fSfxVolumeSlider->SetLimitLabels("0%", "100%");
+	fSfxVolumeSlider->SetModificationMessage(new BMessage(kMsgSfxVolumeChanged));
 
-	fMuteMusicCheckBox = new BCheckBox("muteMusicCheck", "Mute background music",
-		new BMessage(kMsgMuteMusicChanged));
-	fMuteMusicCheckBox->SetValue(MusicPlayer::Instance()->IsMuted() ? B_CONTROL_ON : B_CONTROL_OFF);
+	fMusicVolumeSlider = new BSlider("musicVolume", "Background Music",
+		new BMessage(kMsgMusicVolumeChanged), 0, 100, B_HORIZONTAL);
+	fMusicVolumeSlider->SetValue((int32)(MusicPlayer::Instance()->Volume() * 100));
+	fMusicVolumeSlider->SetHashMarks(B_HASH_MARKS_BOTTOM);
+	fMusicVolumeSlider->SetHashMarkCount(11);
+	fMusicVolumeSlider->SetLimitLabels("0%", "100%");
+	fMusicVolumeSlider->SetModificationMessage(new BMessage(kMsgMusicVolumeChanged));
 
 	BBox* audioBox = new BBox("audioBox");
 	audioBox->SetLabel("Audio");
 	BLayoutBuilder::Group<>(audioBox, B_VERTICAL, B_USE_SMALL_SPACING)
 		.SetInsets(B_USE_SMALL_INSETS)
 		.AddStrut(B_USE_SMALL_SPACING)
-		.Add(fMuteSfxCheckBox)
-		.Add(fMuteMusicCheckBox)
+		.Add(fSfxVolumeSlider)
+		.Add(fMusicVolumeSlider)
 		.AddGlue()
 		.End();
 
@@ -84,17 +92,17 @@ void
 SettingsWindow::MessageReceived(BMessage* message)
 {
 	switch (message->what) {
-		case kMsgMuteSfxChanged:
+		case kMsgSfxVolumeChanged:
 		{
-			bool muted = (fMuteSfxCheckBox->Value() == B_CONTROL_ON);
-			SoundPlayer::Instance()->SetMuted(muted);
+			float volume = (float)fSfxVolumeSlider->Value() / 100.0;
+			SoundPlayer::Instance()->SetVolume(volume);
 			break;
 		}
 
-		case kMsgMuteMusicChanged:
+		case kMsgMusicVolumeChanged:
 		{
-			bool muted = (fMuteMusicCheckBox->Value() == B_CONTROL_ON);
-			MusicPlayer::Instance()->SetMuted(muted);
+			float volume = (float)fMusicVolumeSlider->Value() / 100.0;
+			MusicPlayer::Instance()->SetVolume(volume);
 			break;
 		}
 

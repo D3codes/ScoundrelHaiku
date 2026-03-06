@@ -17,8 +17,8 @@ public:
 
 	void				Start();
 	void				Stop();
-	void				SetMuted(bool muted);
-	bool				IsMuted() const { return fMuted; }
+	void				SetVolume(float volume);
+	float				Volume() const { return fVolume; }
 
 	void				LoadSettings();
 	void				SaveSettings();
@@ -37,7 +37,7 @@ private:
 	int32				fCurrentTrack;
 	BFileGameSound*		fCurrentSound;
 	BPath				fMusicPath;
-	bool				fMuted;
+	float				fVolume;
 	bool				fPlaying;
 };
 

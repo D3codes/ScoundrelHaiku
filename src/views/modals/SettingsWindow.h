@@ -4,7 +4,7 @@
 #include <Window.h>
 
 class BButton;
-class BCheckBox;
+class BSlider;
 
 class SettingsWindow : public BWindow {
 public:
@@ -15,8 +15,8 @@ public:
 
 private:
 	BWindow*			fParent;
-	BCheckBox*			fMuteSfxCheckBox;
-	BCheckBox*			fMuteMusicCheckBox;
+	BSlider*			fSfxVolumeSlider;
+	BSlider*			fMusicVolumeSlider;
 	BButton*			fResetButton;
 };
 

@@ -45,8 +45,8 @@ public:
 	void			PlayRandomSword();
 	void			PlayRandomPunch();
 	void			PlayRandomEquip();
-	void			SetMuted(bool muted);
-	bool			IsMuted() const { return fMuted; }
+	void			SetVolume(float volume);
+	float			Volume() const { return fVolume; }
 	void			LoadSettings();
 	void			SaveSettings();
 
@@ -59,7 +59,7 @@ private:
 	static SoundPlayer*			sInstance;
 	BObjectList<SoundCacheEntry>	fCache;
 	BPath			fSoundPath;
-	bool			fMuted;
+	float			fVolume;
 };
 
 #endif // SOUND_PLAYER_H
