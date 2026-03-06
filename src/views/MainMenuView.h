@@ -22,6 +22,7 @@ private:
 	BView*				fResumeButton;
 	BView*				fHowToPlayButton;
 	BView*				fHighScoresButton;
+	BView*				fSettingsButton;
 	bool				fHasSavedGame;
 	int					fBackgroundIndex;
 

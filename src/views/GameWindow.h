@@ -9,6 +9,7 @@ class MainMenuView;
 class GameBoardView;
 class HowToPlayWindow;
 class HighScoresWindow;
+class SettingsWindow;
 
 class GameWindow : public BWindow, public GameObserver {
 public:
@@ -35,6 +36,7 @@ private:
 	void				HandleCardAction(BMessage* message);
 	void				ShowHowToPlay();
 	void				ShowHighScores();
+	void				ShowSettings();
 	void				ShowNameEntry();
 	void				UpdateMainMenuStats();
 
@@ -46,6 +48,7 @@ private:
 	int					fPendingDungeons;
 	HowToPlayWindow*	fHowToPlayWindow;
 	HighScoresWindow*	fHighScoresWindow;
+	SettingsWindow*		fSettingsWindow;
 };
 
 #endif // GAME_WINDOW_H

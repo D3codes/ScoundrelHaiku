@@ -43,4 +43,7 @@ const uint32 kMsgDeckCountChanged = 'DKCT';
 const uint32 kMsgHighScores = 'HSCR';
 const uint32 kMsgHighScoresUpdated = 'HSUP';
 
+// Settings messages
+const uint32 kMsgSettings = 'SETT';
+
 #endif // MESSAGE_CODES_H

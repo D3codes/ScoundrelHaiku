@@ -7,6 +7,7 @@
 #include "modals/HowToPlayWindow.h"
 #include "modals/HighScoresWindow.h"
 #include "modals/NameEntryWindow.h"
+#include "modals/SettingsWindow.h"
 #include "helpers/HighScoreManager.h"
 #include "helpers/SaveManager.h"
 #include "utils/Constants.h"
@@ -25,7 +26,8 @@ GameWindow::GameWindow()
 	fPendingScore(0),
 	fPendingDungeons(0),
 	fHowToPlayWindow(NULL),
-	fHighScoresWindow(NULL)
+	fHighScoresWindow(NULL),
+	fSettingsWindow(NULL)
 {
 	fGame.SetObserver(this);
 
@@ -167,6 +169,10 @@ GameWindow::MessageReceived(BMessage* message)
 			ShowHighScores();
 			break;
 
+		case kMsgSettings:
+			ShowSettings();
+			break;
+
 		default:
 			BWindow::MessageReceived(message);
 			break;
@@ -284,6 +290,20 @@ GameWindow::ShowHighScores()
 
 	fHighScoresWindow = new HighScoresWindow(this);
 	fHighScoresWindow->Show();
+}
+
+
+void
+GameWindow::ShowSettings()
+{
+	if (IsWindowValid(fSettingsWindow)) {
+		// Window already exists, bring to front
+		fSettingsWindow->Activate();
+		return;
+	}
+
+	fSettingsWindow = new SettingsWindow(this);
+	fSettingsWindow->Show();
 }
 
 

@@ -119,9 +119,15 @@ MainMenuView::MainMenuView(BRect frame)
 		BRect(buttonX, startY + spacing * 2, buttonX + buttonWidth, startY + spacing * 2 + buttonHeight),
 		"High Scores", new BMessage(kMsgHighScores));
 
+	// Settings button
+	fSettingsButton = new PlankButtonMenu(
+		BRect(buttonX, startY + spacing * 3, buttonX + buttonWidth, startY + spacing * 3 + buttonHeight),
+		"Settings", new BMessage(kMsgSettings));
+
 	AddChild(fNewGameButton);
 	AddChild(fHowToPlayButton);
 	AddChild(fHighScoresButton);
+	AddChild(fSettingsButton);
 }
 
 
@@ -331,21 +337,24 @@ MainMenuView::SetHasSavedGame(bool hasSaved)
 		if (fResumeButton->Parent() == NULL)
 			AddChild(fResumeButton);
 
-		float startY = 220;
+		float startY = 215;
+		float savedSpacing = 50;
 		fResumeButton->MoveTo(buttonX, startY);
-		fNewGameButton->MoveTo(buttonX, startY + spacing);
-		fHowToPlayButton->MoveTo(buttonX, startY + spacing * 2);
-		fHighScoresButton->MoveTo(buttonX, startY + spacing * 3);
+		fNewGameButton->MoveTo(buttonX, startY + savedSpacing);
+		fHowToPlayButton->MoveTo(buttonX, startY + savedSpacing * 2);
+		fHighScoresButton->MoveTo(buttonX, startY + savedSpacing * 3);
+		fSettingsButton->MoveTo(buttonX, startY + savedSpacing * 4);
 	} else {
 		// Remove resume button and move others up
 		// Center buttons vertically without stats
 		if (fResumeButton->Parent() != NULL)
 			fResumeButton->RemoveSelf();
 
-		float startY = 280;
+		float startY = 250;
 		fNewGameButton->MoveTo(buttonX, startY);
 		fHowToPlayButton->MoveTo(buttonX, startY + spacing);
 		fHighScoresButton->MoveTo(buttonX, startY + spacing * 2);
+		fSettingsButton->MoveTo(buttonX, startY + spacing * 3);
 	}
 
 	Invalidate();
