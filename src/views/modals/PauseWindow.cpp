@@ -161,7 +161,7 @@ private:
 
 PauseWindow::PauseWindow(BWindow* parent)
 	:
-	BWindow(BRect(0, 0, 220, 275), "Pause",
+	BWindow(BRect(0, 0, 220, 290), "Pause",
 		B_MODAL_WINDOW_LOOK, B_MODAL_SUBSET_WINDOW_FEEL,
 		B_NOT_RESIZABLE | B_NOT_ZOOMABLE),
 	fParent(parent)
@@ -220,7 +220,7 @@ PauseWindow::PauseWindow(BWindow* parent)
 			centerX + buttonWidth / 2, btnY + buttonHeight),
 		"Settings", new BMessage(kMsgSettings));
 	contentView->AddChild(settingsBtn);
-	btnY += buttonHeight + buttonSpacing;
+	btnY += buttonHeight + buttonSpacing + 15;  // Extra space before New Game
 
 	PlankButtonPause* newGameBtn = new PlankButtonPause(
 		BRect(centerX - buttonWidth / 2, btnY,

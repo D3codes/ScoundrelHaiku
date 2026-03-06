@@ -337,24 +337,37 @@ MainMenuView::SetHasSavedGame(bool hasSaved)
 		if (fResumeButton->Parent() == NULL)
 			AddChild(fResumeButton);
 
-		float startY = 215;
-		float savedSpacing = 50;
-		fResumeButton->MoveTo(buttonX, startY);
-		fNewGameButton->MoveTo(buttonX, startY + savedSpacing);
-		fHowToPlayButton->MoveTo(buttonX, startY + savedSpacing * 2);
-		fHighScoresButton->MoveTo(buttonX, startY + savedSpacing * 3);
-		fSettingsButton->MoveTo(buttonX, startY + savedSpacing * 4);
+		float startY = 210;
+		float btnSpacing = 48;
+		float extraGap = 18;  // Extra space between New Game and How to Play
+		float y = startY;
+		fResumeButton->MoveTo(buttonX, y);
+		y += 45 + btnSpacing;
+		fNewGameButton->MoveTo(buttonX, y);
+		y += 45 + btnSpacing + extraGap;  // Extra gap after New Game
+		fHowToPlayButton->MoveTo(buttonX, y);
+		y += 45 + btnSpacing;
+		fHighScoresButton->MoveTo(buttonX, y);
+		y += 45 + btnSpacing;
+		fSettingsButton->MoveTo(buttonX, y);
 	} else {
 		// Remove resume button and move others up
-		// Center buttons vertically without stats
+		// Center buttons vertically between title bar (80) and bottom (600)
+		// Available space: 520px, content height: ~310px
 		if (fResumeButton->Parent() != NULL)
 			fResumeButton->RemoveSelf();
 
-		float startY = 250;
-		fNewGameButton->MoveTo(buttonX, startY);
-		fHowToPlayButton->MoveTo(buttonX, startY + spacing);
-		fHighScoresButton->MoveTo(buttonX, startY + spacing * 2);
-		fSettingsButton->MoveTo(buttonX, startY + spacing * 3);
+		float btnSpacing = 55;
+		float extraGap = 20;  // Extra space between New Game and How to Play
+		float startY = 185;   // Centered position
+		float y = startY;
+		fNewGameButton->MoveTo(buttonX, y);
+		y += 45 + btnSpacing + extraGap;  // Extra gap after New Game
+		fHowToPlayButton->MoveTo(buttonX, y);
+		y += 45 + btnSpacing;
+		fHighScoresButton->MoveTo(buttonX, y);
+		y += 45 + btnSpacing;
+		fSettingsButton->MoveTo(buttonX, y);
 	}
 
 	Invalidate();
