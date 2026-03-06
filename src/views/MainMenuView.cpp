@@ -95,24 +95,28 @@ MainMenuView::MainMenuView(BRect frame)
 	float buttonHeight = 45;
 	float buttonX = centerX - buttonWidth / 2;
 
+	// Initial button positions (no saved game - centered layout)
+	float startY = 280;
+	float spacing = 55;
+
 	// Resume button (initially hidden)
 	fResumeButton = new PlankButtonMenu(
-		BRect(buttonX, 200, buttonX + buttonWidth, 200 + buttonHeight),
+		BRect(buttonX, startY, buttonX + buttonWidth, startY + buttonHeight),
 		"Resume", new BMessage(kMsgResumeGame));
 
 	// New Game button
 	fNewGameButton = new PlankButtonMenu(
-		BRect(buttonX, 260, buttonX + buttonWidth, 260 + buttonHeight),
+		BRect(buttonX, startY, buttonX + buttonWidth, startY + buttonHeight),
 		"New Game", new BMessage(kMsgNewGame));
 
 	// How to Play button
 	fHowToPlayButton = new PlankButtonMenu(
-		BRect(buttonX, 320, buttonX + buttonWidth, 320 + buttonHeight),
+		BRect(buttonX, startY + spacing, buttonX + buttonWidth, startY + spacing + buttonHeight),
 		"How to Play", new BMessage(kMsgHowToPlay));
 
 	// High Scores button
 	fHighScoresButton = new PlankButtonMenu(
-		BRect(buttonX, 380, buttonX + buttonWidth, 380 + buttonHeight),
+		BRect(buttonX, startY + spacing * 2, buttonX + buttonWidth, startY + spacing * 2 + buttonHeight),
 		"High Scores", new BMessage(kMsgHighScores));
 
 	AddChild(fNewGameButton);
@@ -205,144 +209,92 @@ MainMenuView::DrawSavedGameStats()
 {
 	BRect bounds = Bounds();
 	float centerX = bounds.Width() / 2;
-	float statsY = 110;  // Below title bar
+	float statsY = 95;  // Below title bar
 
+	// Box dimensions
+	float boxSize = 50;
+	float boxSpacing = 10;
+	float boxRadius = 8;
 	float iconSize = 24;
-	float spacing = 8;
-	float groupSpacing = 20;
+
+	// Calculate grid position (3 columns, 2 rows)
+	float gridWidth = boxSize * 3 + boxSpacing * 2;
+	float gridStartX = centerX - gridWidth / 2;
 
 	BFont font;
-	font.SetSize(16);
+	font.SetSize(14);
 	font.SetFace(B_BOLD_FACE);
 	SetFont(&font);
 
-	// Calculate total width for centering
-	// Top row: deck, score, dungeon
-	// Bottom row: heart, shield, sword
+	// Helper lambda to draw a stat box
+	auto drawStatBox = [&](float x, float y, BBitmap* icon, const char* label,
+		const char* value) {
+		BRect boxRect(x, y, x + boxSize, y + boxSize);
 
-	// Draw top row: deck, "Score", dungeon
-	float topRowY = statsY;
+		// Draw semi-transparent dark background
+		SetDrawingMode(B_OP_ALPHA);
+		SetHighColor(0, 0, 0, 160);
+		FillRoundRect(boxRect, boxRadius, boxRadius);
 
-	// Deck icon and count
-	BBitmap* deckIcon = ResourceLoader::Instance()->GetGlyph("deck");
-	BString deckStr;
+		// Draw subtle border
+		SetHighColor(80, 80, 80, 200);
+		StrokeRoundRect(boxRect, boxRadius, boxRadius);
+		SetDrawingMode(B_OP_COPY);
+
+		// Draw icon centered horizontally, near top
+		float iconX = x + (boxSize - iconSize) / 2;
+		float iconY = y + 6;
+		if (icon != NULL) {
+			SetDrawingMode(B_OP_ALPHA);
+			DrawBitmap(icon, icon->Bounds(),
+				BRect(iconX, iconY, iconX + iconSize, iconY + iconSize));
+			SetDrawingMode(B_OP_COPY);
+		} else if (label != NULL) {
+			// For "Score" which has no icon, draw text label
+			float labelWidth = StringWidth(label);
+			SetHighColor(180, 160, 130);
+			DrawString(label, BPoint(x + (boxSize - labelWidth) / 2, iconY + 16));
+		}
+
+		// Draw value centered horizontally, at bottom
+		float valueWidth = StringWidth(value);
+		float valueX = x + (boxSize - valueWidth) / 2;
+		float valueY = y + boxSize - 8;
+		SetHighColor(kTextColor);
+		DrawString(value, BPoint(valueX, valueY));
+	};
+
+	// Prepare values
+	BString deckStr, scoreStr, dungeonStr, healthStr, shieldStr, swordStr;
 	deckStr.SetToFormat("%d", fDeckCount);
-	float deckTextWidth = StringWidth(deckStr.String());
-
-	// Score label and value
-	BString scoreStr;
 	scoreStr.SetToFormat("%d", fScore);
-	float scoreLabelWidth = StringWidth("Score");
-	float scoreTextWidth = StringWidth(scoreStr.String());
-
-	// Dungeon icon and count
-	BBitmap* dungeonIcon = ResourceLoader::Instance()->GetGlyph("dungeonGlyph");
-	BString dungeonStr;
 	dungeonStr.SetToFormat("%d", fDungeon);
-	float dungeonTextWidth = StringWidth(dungeonStr.String());
-
-	// Calculate positions for top row (3 groups)
-	float topRowWidth = (iconSize + spacing + deckTextWidth) + groupSpacing +
-		(scoreLabelWidth + spacing + scoreTextWidth) + groupSpacing +
-		(iconSize + spacing + dungeonTextWidth);
-	float topRowStartX = centerX - topRowWidth / 2;
-
-	float x = topRowStartX;
-
-	// Draw deck
-	if (deckIcon != NULL) {
-		SetDrawingMode(B_OP_ALPHA);
-		DrawBitmap(deckIcon, deckIcon->Bounds(),
-			BRect(x, topRowY, x + iconSize, topRowY + iconSize));
-		SetDrawingMode(B_OP_COPY);
-	}
-	x += iconSize + spacing;
-	SetHighColor(kTextColor);
-	DrawString(deckStr.String(), BPoint(x, topRowY + iconSize - 5));
-	x += deckTextWidth + groupSpacing;
-
-	// Draw score (text label instead of icon)
-	SetHighColor(200, 180, 140);  // Lighter color for label
-	DrawString("Score", BPoint(x, topRowY + iconSize - 5));
-	x += scoreLabelWidth + spacing;
-	SetHighColor(kTextColor);
-	DrawString(scoreStr.String(), BPoint(x, topRowY + iconSize - 5));
-	x += scoreTextWidth + groupSpacing;
-
-	// Draw dungeon
-	if (dungeonIcon != NULL) {
-		SetDrawingMode(B_OP_ALPHA);
-		DrawBitmap(dungeonIcon, dungeonIcon->Bounds(),
-			BRect(x, topRowY, x + iconSize, topRowY + iconSize));
-		SetDrawingMode(B_OP_COPY);
-	}
-	x += iconSize + spacing;
-	SetHighColor(kTextColor);
-	DrawString(dungeonStr.String(), BPoint(x, topRowY + iconSize - 5));
-
-	// Draw bottom row: heart, shield, sword
-	float bottomRowY = statsY + iconSize + 12;
-
-	// Heart icon and health
-	BBitmap* heartIcon = ResourceLoader::Instance()->GetGlyph("heart1");
-	BString healthStr;
 	healthStr.SetToFormat("%d", fHealth);
-	float healthTextWidth = StringWidth(healthStr.String());
-
-	// Shield icon and value
-	BBitmap* shieldIcon = ResourceLoader::Instance()->GetGlyph("shield1");
-	BString shieldStr;
 	shieldStr.SetToFormat("%d", fShield);
-	float shieldTextWidth = StringWidth(shieldStr.String());
-
-	// Sword icon and value
-	BBitmap* swordIcon = ResourceLoader::Instance()->GetGlyph("sword1");
-	BString swordStr;
 	swordStr.SetToFormat("%d", fSword);
-	float swordTextWidth = StringWidth(swordStr.String());
 
-	// Calculate positions for bottom row
-	float bottomRowWidth = (iconSize + spacing + healthTextWidth) + groupSpacing +
-		(iconSize + spacing + shieldTextWidth) + groupSpacing +
-		(iconSize + spacing + swordTextWidth);
-	float bottomRowStartX = centerX - bottomRowWidth / 2;
+	// Get icons
+	BBitmap* deckIcon = ResourceLoader::Instance()->GetGlyph("deck");
+	BBitmap* dungeonIcon = ResourceLoader::Instance()->GetGlyph("dungeonGlyph");
+	BBitmap* heartIcon = ResourceLoader::Instance()->GetGlyph("heart1");
+	BBitmap* shieldIcon = ResourceLoader::Instance()->GetGlyph("shield1");
+	BBitmap* swordIcon = ResourceLoader::Instance()->GetGlyph("sword1");
 
-	x = bottomRowStartX;
+	// Top row: Deck, Score, Dungeon
+	float row1Y = statsY;
+	drawStatBox(gridStartX, row1Y, deckIcon, NULL, deckStr.String());
+	drawStatBox(gridStartX + boxSize + boxSpacing, row1Y, NULL, "Score",
+		scoreStr.String());
+	drawStatBox(gridStartX + (boxSize + boxSpacing) * 2, row1Y, dungeonIcon, NULL,
+		dungeonStr.String());
 
-	// Draw heart
-	if (heartIcon != NULL) {
-		SetDrawingMode(B_OP_ALPHA);
-		DrawBitmap(heartIcon, heartIcon->Bounds(),
-			BRect(x, bottomRowY, x + iconSize, bottomRowY + iconSize));
-		SetDrawingMode(B_OP_COPY);
-	}
-	x += iconSize + spacing;
-	SetHighColor(kTextColor);
-	DrawString(healthStr.String(), BPoint(x, bottomRowY + iconSize - 5));
-	x += healthTextWidth + groupSpacing;
-
-	// Draw shield
-	if (shieldIcon != NULL) {
-		SetDrawingMode(B_OP_ALPHA);
-		DrawBitmap(shieldIcon, shieldIcon->Bounds(),
-			BRect(x, bottomRowY, x + iconSize, bottomRowY + iconSize));
-		SetDrawingMode(B_OP_COPY);
-	}
-	x += iconSize + spacing;
-	SetHighColor(kTextColor);
-	DrawString(shieldStr.String(), BPoint(x, bottomRowY + iconSize - 5));
-	x += shieldTextWidth + groupSpacing;
-
-	// Draw sword
-	if (swordIcon != NULL) {
-		SetDrawingMode(B_OP_ALPHA);
-		DrawBitmap(swordIcon, swordIcon->Bounds(),
-			BRect(x, bottomRowY, x + iconSize, bottomRowY + iconSize));
-		SetDrawingMode(B_OP_COPY);
-	}
-	x += iconSize + spacing;
-	SetHighColor(kTextColor);
-	DrawString(swordStr.String(), BPoint(x, bottomRowY + iconSize - 5));
+	// Bottom row: Heart, Shield, Sword
+	float row2Y = statsY + boxSize + boxSpacing;
+	drawStatBox(gridStartX, row2Y, heartIcon, NULL, healthStr.String());
+	drawStatBox(gridStartX + boxSize + boxSpacing, row2Y, shieldIcon, NULL,
+		shieldStr.String());
+	drawStatBox(gridStartX + (boxSize + boxSpacing) * 2, row2Y, swordIcon, NULL,
+		swordStr.String());
 }
 
 
@@ -370,26 +322,27 @@ MainMenuView::SetHasSavedGame(bool hasSaved)
 
 	float centerX = Bounds().Width() / 2;
 	float buttonWidth = 200;
-	float buttonHeight = 45;
 	float buttonX = centerX - buttonWidth / 2;
 	float spacing = 55;
 
 	if (hasSaved) {
 		// Add resume button and adjust other buttons
+		// Stats grid ends around y=205, start buttons below
 		if (fResumeButton->Parent() == NULL)
 			AddChild(fResumeButton);
 
-		float startY = 200;
+		float startY = 220;
 		fResumeButton->MoveTo(buttonX, startY);
 		fNewGameButton->MoveTo(buttonX, startY + spacing);
 		fHowToPlayButton->MoveTo(buttonX, startY + spacing * 2);
 		fHighScoresButton->MoveTo(buttonX, startY + spacing * 3);
 	} else {
 		// Remove resume button and move others up
+		// Center buttons vertically without stats
 		if (fResumeButton->Parent() != NULL)
 			fResumeButton->RemoveSelf();
 
-		float startY = 230;
+		float startY = 280;
 		fNewGameButton->MoveTo(buttonX, startY);
 		fHowToPlayButton->MoveTo(buttonX, startY + spacing);
 		fHighScoresButton->MoveTo(buttonX, startY + spacing * 2);
