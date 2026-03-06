@@ -2,6 +2,7 @@
 #include "views/GameWindow.h"
 #include "helpers/ResourceLoader.h"
 #include "helpers/SoundPlayer.h"
+#include "helpers/MusicPlayer.h"
 #include "helpers/SaveManager.h"
 #include "utils/Constants.h"
 
@@ -20,6 +21,7 @@ ScoundrelApp::ScoundrelApp()
 ScoundrelApp::~ScoundrelApp()
 {
 	// Destroy singletons
+	MusicPlayer::Destroy();
 	SaveManager::Destroy();
 	SoundPlayer::Destroy();
 	ResourceLoader::Destroy();
@@ -31,6 +33,9 @@ ScoundrelApp::ReadyToRun()
 {
 	fWindow = new GameWindow();
 	fWindow->Show();
+
+	// Start background music
+	MusicPlayer::Instance()->Start();
 }
 
 

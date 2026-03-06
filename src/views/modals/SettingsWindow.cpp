@@ -1,5 +1,6 @@
 #include "SettingsWindow.h"
 #include "helpers/HighScoreManager.h"
+#include "helpers/MusicPlayer.h"
 #include "helpers/SoundPlayer.h"
 #include "utils/Constants.h"
 #include "utils/MessageCodes.h"
@@ -14,27 +15,33 @@
 #include <StringView.h>
 #include <View.h>
 
-static const uint32 kMsgMuteChanged = 'MUTC';
+static const uint32 kMsgMuteSfxChanged = 'MSFX';
+static const uint32 kMsgMuteMusicChanged = 'MMUS';
 static const uint32 kMsgResetScores = 'RSTS';
 
 
 SettingsWindow::SettingsWindow(BWindow* parent)
 	:
-	BWindow(BRect(0, 0, 300, 200), "Settings",
+	BWindow(BRect(0, 0, 300, 220), "Settings",
 		B_TITLED_WINDOW, B_NOT_RESIZABLE | B_NOT_ZOOMABLE | B_AUTO_UPDATE_SIZE_LIMITS),
 	fParent(parent)
 {
 	// Audio section
-	fMuteCheckBox = new BCheckBox("muteCheck", "Mute sound effects",
-		new BMessage(kMsgMuteChanged));
-	fMuteCheckBox->SetValue(SoundPlayer::Instance()->IsMuted() ? B_CONTROL_ON : B_CONTROL_OFF);
+	fMuteSfxCheckBox = new BCheckBox("muteSfxCheck", "Mute sound effects",
+		new BMessage(kMsgMuteSfxChanged));
+	fMuteSfxCheckBox->SetValue(SoundPlayer::Instance()->IsMuted() ? B_CONTROL_ON : B_CONTROL_OFF);
+
+	fMuteMusicCheckBox = new BCheckBox("muteMusicCheck", "Mute background music",
+		new BMessage(kMsgMuteMusicChanged));
+	fMuteMusicCheckBox->SetValue(MusicPlayer::Instance()->IsMuted() ? B_CONTROL_ON : B_CONTROL_OFF);
 
 	BBox* audioBox = new BBox("audioBox");
 	audioBox->SetLabel("Audio");
 	BLayoutBuilder::Group<>(audioBox, B_VERTICAL, B_USE_SMALL_SPACING)
 		.SetInsets(B_USE_SMALL_INSETS)
 		.AddStrut(B_USE_SMALL_SPACING)
-		.Add(fMuteCheckBox)
+		.Add(fMuteSfxCheckBox)
+		.Add(fMuteMusicCheckBox)
 		.AddGlue()
 		.End();
 
@@ -77,10 +84,17 @@ void
 SettingsWindow::MessageReceived(BMessage* message)
 {
 	switch (message->what) {
-		case kMsgMuteChanged:
+		case kMsgMuteSfxChanged:
 		{
-			bool muted = (fMuteCheckBox->Value() == B_CONTROL_ON);
+			bool muted = (fMuteSfxCheckBox->Value() == B_CONTROL_ON);
 			SoundPlayer::Instance()->SetMuted(muted);
+			break;
+		}
+
+		case kMsgMuteMusicChanged:
+		{
+			bool muted = (fMuteMusicCheckBox->Value() == B_CONTROL_ON);
+			MusicPlayer::Instance()->SetMuted(muted);
 			break;
 		}
 

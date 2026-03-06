@@ -15,7 +15,8 @@ public:
 
 private:
 	BWindow*			fParent;
-	BCheckBox*			fMuteCheckBox;
+	BCheckBox*			fMuteSfxCheckBox;
+	BCheckBox*			fMuteMusicCheckBox;
 	BButton*			fResetButton;
 };
 

@@ -145,13 +145,23 @@ SoundPlayer::SaveSettings()
 
 	path.Append("settings");
 
-	BFile file(path.Path(), B_WRITE_ONLY | B_CREATE_FILE | B_ERASE_FILE);
-	if (file.InitCheck() != B_OK)
-		return;
-
+	// Read existing settings first to preserve other values
 	BMessage archive;
+	BFile readFile(path.Path(), B_READ_ONLY);
+	if (readFile.InitCheck() == B_OK) {
+		archive.Unflatten(&readFile);
+	}
+	readFile.Unset();
+
+	// Update SFX muted setting
+	archive.RemoveName("muted");
 	archive.AddBool("muted", fMuted);
-	archive.Flatten(&file);
+
+	// Write back
+	BFile writeFile(path.Path(), B_WRITE_ONLY | B_CREATE_FILE | B_ERASE_FILE);
+	if (writeFile.InitCheck() == B_OK) {
+		archive.Flatten(&writeFile);
+	}
 }
 
 

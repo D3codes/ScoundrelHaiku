@@ -161,7 +161,7 @@ private:
 
 PauseWindow::PauseWindow(BWindow* parent)
 	:
-	BWindow(BRect(0, 0, 220, 229), "Pause",
+	BWindow(BRect(0, 0, 220, 275), "Pause",
 		B_MODAL_WINDOW_LOOK, B_MODAL_SUBSET_WINDOW_FEEL,
 		B_NOT_RESIZABLE | B_NOT_ZOOMABLE),
 	fParent(parent)
@@ -193,7 +193,7 @@ PauseWindow::PauseWindow(BWindow* parent)
 	float centerX = windowWidth / 2;
 	float btnY = 10;
 
-	// Buttons in order: Main Menu, How to Play, High Scores, New Game
+	// Buttons in order: Main Menu, How to Play, High Scores, Settings, New Game
 	PlankButtonPause* menuBtn = new PlankButtonPause(
 		BRect(centerX - buttonWidth / 2, btnY,
 			centerX + buttonWidth / 2, btnY + buttonHeight),
@@ -213,6 +213,13 @@ PauseWindow::PauseWindow(BWindow* parent)
 			centerX + buttonWidth / 2, btnY + buttonHeight),
 		"High Scores", new BMessage(kMsgHighScores));
 	contentView->AddChild(highScoresBtn);
+	btnY += buttonHeight + buttonSpacing;
+
+	PlankButtonPause* settingsBtn = new PlankButtonPause(
+		BRect(centerX - buttonWidth / 2, btnY,
+			centerX + buttonWidth / 2, btnY + buttonHeight),
+		"Settings", new BMessage(kMsgSettings));
+	contentView->AddChild(settingsBtn);
 	btnY += buttonHeight + buttonSpacing;
 
 	PlankButtonPause* newGameBtn = new PlankButtonPause(
@@ -242,6 +249,7 @@ PauseWindow::MessageReceived(BMessage* message)
 			break;
 		case kMsgHowToPlay:
 		case kMsgHighScores:
+		case kMsgSettings:
 			// Forward to parent GameWindow which manages the singleton windows
 			fParent->PostMessage(message);
 			break;

@@ -27,6 +27,7 @@ SRCS = \
 	src/views/modals/SettingsWindow.cpp \
 	src/helpers/ResourceLoader.cpp \
 	src/helpers/SoundPlayer.cpp \
+	src/helpers/MusicPlayer.cpp \
 	src/helpers/SaveManager.cpp \
 	src/helpers/HighScoreManager.cpp
 
