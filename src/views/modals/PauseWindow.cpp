@@ -1,5 +1,6 @@
 #include "PauseWindow.h"
 #include "helpers/ResourceLoader.h"
+#include "helpers/SoundPlayer.h"
 #include "utils/Constants.h"
 #include "utils/MessageCodes.h"
 
@@ -99,7 +100,7 @@ public:
 class PlankButtonPause : public BView {
 public:
 	PlankButtonPause(BRect frame, const char* label, BMessage* message)
-		: BView(frame, "plankBtn", B_FOLLOW_NONE, B_WILL_DRAW),
+		: BView(frame, label, B_FOLLOW_NONE, B_WILL_DRAW),
 		  fLabel(label),
 		  fMessage(message)
 	{
@@ -249,8 +250,12 @@ PauseWindow::MessageReceived(BMessage* message)
 			break;
 		case kMsgHowToPlay:
 		case kMsgHighScores:
-		case kMsgSettings:
 			// Forward to parent GameWindow which manages the singleton windows
+			fParent->PostMessage(message);
+			break;
+		case kMsgSettings:
+			// Play a sound to verify click is received, then forward
+			SoundPlayer::Instance()->PlaySound(SFX_PAGE);
 			fParent->PostMessage(message);
 			break;
 		default:

@@ -44,6 +44,6 @@ const uint32 kMsgHighScores = 'HSCR';
 const uint32 kMsgHighScoresUpdated = 'HSUP';
 
 // Settings messages
-const uint32 kMsgSettings = 'SETT';
+const uint32 kMsgSettings = 'STNG';
 
 #endif // MESSAGE_CODES_H
