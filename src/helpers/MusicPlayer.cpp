@@ -174,7 +174,7 @@ MusicPlayer::PlayCurrentTrack()
 
 	fCurrentSound = new BFileGameSound(&ref, false);
 	if (fCurrentSound->InitCheck() == B_OK) {
-		fCurrentSound->SetVolume(1.0);
+		fCurrentSound->SetGain(1.0);
 		fCurrentSound->StartPlaying();
 	} else {
 		delete fCurrentSound;
