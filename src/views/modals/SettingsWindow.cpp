@@ -88,6 +88,14 @@ SettingsWindow::~SettingsWindow()
 }
 
 
+bool
+SettingsWindow::QuitRequested()
+{
+	fParent->PostMessage(kMsgSettingsClosed);
+	return true;
+}
+
+
 void
 SettingsWindow::MessageReceived(BMessage* message)
 {

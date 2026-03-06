@@ -11,8 +11,10 @@ public:
 	virtual				~HighScoresWindow();
 
 	virtual void		MessageReceived(BMessage* message);
+	virtual bool		QuitRequested();
 
 private:
+	BWindow*			fParent;
 	BView*				fContentView;
 };
 

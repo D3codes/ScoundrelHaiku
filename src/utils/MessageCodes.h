@@ -45,5 +45,8 @@ const uint32 kMsgHighScoresUpdated = 'HSUP';
 
 // Settings messages
 const uint32 kMsgSettings = 'STNG';
+const uint32 kMsgSettingsClosed = 'STCL';
+const uint32 kMsgHowToPlayClosed = 'HTCL';
+const uint32 kMsgHighScoresClosed = 'HSCL';
 
 #endif // MESSAGE_CODES_H

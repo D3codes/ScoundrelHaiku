@@ -9,6 +9,7 @@ public:
 	virtual				~HowToPlayWindow();
 
 	virtual void		MessageReceived(BMessage* message);
+	virtual bool		QuitRequested();
 
 private:
 	BWindow*			fParent;

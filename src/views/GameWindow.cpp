@@ -173,6 +173,18 @@ GameWindow::MessageReceived(BMessage* message)
 			ShowSettings();
 			break;
 
+		case kMsgSettingsClosed:
+			fSettingsWindow = NULL;
+			break;
+
+		case kMsgHowToPlayClosed:
+			fHowToPlayWindow = NULL;
+			break;
+
+		case kMsgHighScoresClosed:
+			fHighScoresWindow = NULL;
+			break;
+
 		default:
 			BWindow::MessageReceived(message);
 			break;

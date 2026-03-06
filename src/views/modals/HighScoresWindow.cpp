@@ -106,7 +106,8 @@ public:
 HighScoresWindow::HighScoresWindow(BWindow* parent)
 	:
 	BWindow(BRect(0, 0, 280, 400), "High Scores",
-		B_TITLED_WINDOW, B_NOT_RESIZABLE | B_NOT_ZOOMABLE)
+		B_TITLED_WINDOW, B_NOT_RESIZABLE | B_NOT_ZOOMABLE),
+	fParent(parent)
 {
 	// Center on screen
 	BRect screenFrame = BScreen().Frame();
@@ -124,6 +125,15 @@ HighScoresWindow::HighScoresWindow(BWindow* parent)
 
 HighScoresWindow::~HighScoresWindow()
 {
+}
+
+
+bool
+HighScoresWindow::QuitRequested()
+{
+	if (fParent != NULL)
+		fParent->PostMessage(kMsgHighScoresClosed);
+	return true;
 }
 
 

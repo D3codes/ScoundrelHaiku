@@ -365,6 +365,14 @@ HowToPlayWindow::~HowToPlayWindow()
 }
 
 
+bool
+HowToPlayWindow::QuitRequested()
+{
+	fParent->PostMessage(kMsgHowToPlayClosed);
+	return true;
+}
+
+
 void
 HowToPlayWindow::MessageReceived(BMessage* message)
 {

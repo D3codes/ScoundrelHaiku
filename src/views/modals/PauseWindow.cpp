@@ -1,6 +1,5 @@
 #include "PauseWindow.h"
 #include "helpers/ResourceLoader.h"
-#include "helpers/SoundPlayer.h"
 #include "utils/Constants.h"
 #include "utils/MessageCodes.h"
 
@@ -250,12 +249,8 @@ PauseWindow::MessageReceived(BMessage* message)
 			break;
 		case kMsgHowToPlay:
 		case kMsgHighScores:
-			// Forward to parent GameWindow which manages the singleton windows
-			fParent->PostMessage(message);
-			break;
 		case kMsgSettings:
-			// Play a sound to verify click is received, then forward
-			SoundPlayer::Instance()->PlaySound(SFX_PAGE);
+			// Forward to parent GameWindow which manages the singleton windows
 			fParent->PostMessage(message);
 			break;
 		default:

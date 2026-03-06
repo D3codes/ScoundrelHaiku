@@ -12,6 +12,7 @@ public:
 	virtual				~SettingsWindow();
 
 	virtual void		MessageReceived(BMessage* message);
+	virtual bool		QuitRequested();
 
 private:
 	BWindow*			fParent;
