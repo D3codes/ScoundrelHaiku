@@ -235,23 +235,25 @@ TopBarView::Draw(BRect updateRect)
 void
 TopBarView::DrawIconBox(BRect boxRect, const char* iconName, int value)
 {
-	// Draw glass-like background
-	SetHighColor(60, 60, 70, 180);
-	FillRoundRect(boxRect, 10, 10);
+	float radius = 8;
 
-	// Draw border
-	SetHighColor(40, 40, 50);
-	SetPenSize(2);
-	StrokeRoundRect(boxRect, 10, 10);
-	SetPenSize(1);
+	// Draw semi-transparent dark background (matching main menu style)
+	SetDrawingMode(B_OP_ALPHA);
+	SetHighColor(0, 0, 0, 160);
+	FillRoundRect(boxRect, radius, radius);
+
+	// Draw subtle border
+	SetHighColor(80, 80, 80, 200);
+	StrokeRoundRect(boxRect, radius, radius);
+	SetDrawingMode(B_OP_COPY);
 
 	// Draw icon - deck icon is larger
-	float iconSize = 30;
+	float iconSize = 32;
 	if (strcmp(iconName, "deck") == 0)
-		iconSize = 38;
+		iconSize = 36;
 
 	float iconX = boxRect.left + (boxRect.Width() - iconSize) / 2;
-	float iconY = boxRect.top + 3;
+	float iconY = boxRect.top + 4;
 
 	BBitmap* icon = ResourceLoader::Instance()->GetGlyph(iconName);
 	if (icon != NULL) {
@@ -263,7 +265,7 @@ TopBarView::DrawIconBox(BRect boxRect, const char* iconName, int value)
 
 	// Draw value text below icon
 	BFont font;
-	font.SetSize(18);
+	font.SetSize(14);
 	font.SetFace(B_BOLD_FACE);
 	SetFont(&font);
 	SetHighColor(kTextColor);
@@ -272,7 +274,7 @@ TopBarView::DrawIconBox(BRect boxRect, const char* iconName, int value)
 	valueStr.SetToFormat("%d", value);
 	float textWidth = StringWidth(valueStr.String());
 	float textX = boxRect.left + (boxRect.Width() - textWidth) / 2;
-	float textY = boxRect.bottom - 5;
+	float textY = boxRect.bottom - 6;
 	DrawString(valueStr.String(), BPoint(textX, textY));
 }
 
@@ -280,22 +282,24 @@ TopBarView::DrawIconBox(BRect boxRect, const char* iconName, int value)
 void
 TopBarView::DrawScoreBox(BRect boxRect)
 {
-	// Draw glass-like background
-	SetHighColor(60, 60, 70, 180);
-	FillRoundRect(boxRect, 10, 10);
+	float radius = 8;
 
-	// Draw border
-	SetHighColor(40, 40, 50);
-	SetPenSize(2);
-	StrokeRoundRect(boxRect, 10, 10);
-	SetPenSize(1);
+	// Draw semi-transparent dark background (matching main menu style)
+	SetDrawingMode(B_OP_ALPHA);
+	SetHighColor(0, 0, 0, 160);
+	FillRoundRect(boxRect, radius, radius);
+
+	// Draw subtle border
+	SetHighColor(80, 80, 80, 200);
+	StrokeRoundRect(boxRect, radius, radius);
+	SetDrawingMode(B_OP_COPY);
 
 	// Draw "Score" label
 	BFont font;
-	font.SetSize(14);
+	font.SetSize(12);
 	font.SetFace(B_BOLD_FACE);
 	SetFont(&font);
-	SetHighColor(kTextColor);
+	SetHighColor(180, 160, 130);
 
 	const char* label = "Score";
 	float labelWidth = StringWidth(label);
@@ -303,15 +307,16 @@ TopBarView::DrawScoreBox(BRect boxRect)
 	DrawString(label, BPoint(labelX, boxRect.top + 18));
 
 	// Draw score value
-	font.SetSize(18);
+	font.SetSize(14);
 	SetFont(&font);
+	SetHighColor(kTextColor);
 
 	int score = fGame != NULL ? fGame->Score() : 0;
 	BString scoreStr;
 	scoreStr.SetToFormat("%d", score);
 	float textWidth = StringWidth(scoreStr.String());
 	float textX = boxRect.left + (boxRect.Width() - textWidth) / 2;
-	DrawString(scoreStr.String(), BPoint(textX, boxRect.bottom - 5));
+	DrawString(scoreStr.String(), BPoint(textX, boxRect.bottom - 6));
 }
 
 

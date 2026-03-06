@@ -215,7 +215,7 @@ MainMenuView::DrawSavedGameStats()
 	float boxSize = 50;
 	float boxSpacing = 10;
 	float boxRadius = 8;
-	float iconSize = 24;
+	float iconSize = 32;
 
 	// Calculate grid position (3 columns, 2 rows)
 	float gridWidth = boxSize * 3 + boxSpacing * 2;
@@ -243,7 +243,7 @@ MainMenuView::DrawSavedGameStats()
 
 		// Draw icon centered horizontally, near top
 		float iconX = x + (boxSize - iconSize) / 2;
-		float iconY = y + 6;
+		float iconY = y + 4;
 		if (icon != NULL) {
 			SetDrawingMode(B_OP_ALPHA);
 			DrawBitmap(icon, icon->Bounds(),
