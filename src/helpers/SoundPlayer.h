@@ -47,6 +47,8 @@ public:
 	void			PlayRandomEquip();
 	void			SetMuted(bool muted);
 	bool			IsMuted() const { return fMuted; }
+	void			LoadSettings();
+	void			SaveSettings();
 
 private:
 					SoundPlayer();

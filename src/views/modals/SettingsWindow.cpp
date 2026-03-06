@@ -1,100 +1,70 @@
 #include "SettingsWindow.h"
-#include "helpers/ResourceLoader.h"
+#include "helpers/HighScoreManager.h"
+#include "helpers/SoundPlayer.h"
 #include "utils/Constants.h"
 #include "utils/MessageCodes.h"
 
-#include <Bitmap.h>
+#include <Alert.h>
+#include <Box.h>
+#include <Button.h>
 #include <CheckBox.h>
-#include <String.h>
+#include <LayoutBuilder.h>
+#include <SeparatorView.h>
+#include <SpaceLayoutItem.h>
+#include <StringView.h>
 #include <View.h>
 
-
-class SettingsContentView : public BView {
-public:
-	SettingsContentView(BRect frame)
-		: BView(frame, "settingsContent", B_FOLLOW_ALL, B_WILL_DRAW)
-	{
-		SetViewColor(222, 210, 190);
-	}
-
-	virtual void Draw(BRect updateRect) {
-		BRect bounds = Bounds();
-
-		float y = 30;
-		float leftMargin = 20;
-
-		// Title font
-		BFont titleFont;
-		titleFont.SetSize(24);
-		titleFont.SetFace(B_BOLD_FACE);
-
-		// Section font
-		BFont sectionFont;
-		sectionFont.SetSize(18);
-		sectionFont.SetFace(B_BOLD_FACE);
-
-		// Body font
-		BFont bodyFont;
-		bodyFont.SetSize(14);
-
-		// Draw title
-		SetFont(&titleFont);
-		SetHighColor(kDarkTextColor);
-		DrawString("Settings", BPoint(leftMargin, y));
-		y += 50;
-
-		// Audio section
-		SetFont(&sectionFont);
-		DrawString("Audio", BPoint(leftMargin, y));
-		y += 30;
-
-		// Placeholder text
-		SetFont(&bodyFont);
-		SetHighColor(100, 100, 100);
-		DrawString("Sound settings coming soon...", BPoint(leftMargin, y));
-		y += 50;
-
-		// Display section
-		SetFont(&sectionFont);
-		SetHighColor(kDarkTextColor);
-		DrawString("Display", BPoint(leftMargin, y));
-		y += 30;
-
-		SetFont(&bodyFont);
-		SetHighColor(100, 100, 100);
-		DrawString("Display settings coming soon...", BPoint(leftMargin, y));
-		y += 50;
-
-		// Game section
-		SetFont(&sectionFont);
-		SetHighColor(kDarkTextColor);
-		DrawString("Game", BPoint(leftMargin, y));
-		y += 30;
-
-		SetFont(&bodyFont);
-		SetHighColor(100, 100, 100);
-		DrawString("Game settings coming soon...", BPoint(leftMargin, y));
-	}
-};
+static const uint32 kMsgMuteChanged = 'MUTC';
+static const uint32 kMsgResetScores = 'RSTS';
 
 
 SettingsWindow::SettingsWindow(BWindow* parent)
 	:
-	BWindow(BRect(0, 0, 350, 300), "Settings",
-		B_TITLED_WINDOW, B_NOT_RESIZABLE | B_NOT_ZOOMABLE),
+	BWindow(BRect(0, 0, 300, 200), "Settings",
+		B_TITLED_WINDOW, B_NOT_RESIZABLE | B_NOT_ZOOMABLE | B_AUTO_UPDATE_SIZE_LIMITS),
 	fParent(parent)
 {
+	// Audio section
+	fMuteCheckBox = new BCheckBox("muteCheck", "Mute sound effects",
+		new BMessage(kMsgMuteChanged));
+	fMuteCheckBox->SetValue(SoundPlayer::Instance()->IsMuted() ? B_CONTROL_ON : B_CONTROL_OFF);
+
+	BBox* audioBox = new BBox("audioBox");
+	audioBox->SetLabel("Audio");
+	BLayoutBuilder::Group<>(audioBox, B_VERTICAL, B_USE_SMALL_SPACING)
+		.SetInsets(B_USE_SMALL_INSETS)
+		.AddStrut(B_USE_SMALL_SPACING)
+		.Add(fMuteCheckBox)
+		.AddGlue()
+		.End();
+
+	// High Scores section
+	fResetButton = new BButton("resetBtn", "Reset High Scores",
+		new BMessage(kMsgResetScores));
+
+	BBox* scoresBox = new BBox("scoresBox");
+	scoresBox->SetLabel("High Scores");
+	BLayoutBuilder::Group<>(scoresBox, B_VERTICAL, B_USE_SMALL_SPACING)
+		.SetInsets(B_USE_SMALL_INSETS)
+		.AddStrut(B_USE_SMALL_SPACING)
+		.Add(fResetButton)
+		.AddGlue()
+		.End();
+
+	// Main layout
+	BLayoutBuilder::Group<>(this, B_VERTICAL, B_USE_DEFAULT_SPACING)
+		.SetInsets(B_USE_WINDOW_INSETS)
+		.Add(audioBox)
+		.Add(scoresBox)
+		.AddGlue()
+		.End();
+
 	// Center on parent
 	BRect parentFrame = parent->Frame();
 	BRect frame = Frame();
 	float x = parentFrame.left + (parentFrame.Width() - frame.Width()) / 2;
 	float y = parentFrame.top + (parentFrame.Height() - frame.Height()) / 2;
 	MoveTo(x, y);
-
-	// Create content view
-	BRect bounds = Bounds();
-	SettingsContentView* contentView = new SettingsContentView(bounds);
-	AddChild(contentView);
 }
 
 
@@ -107,6 +77,28 @@ void
 SettingsWindow::MessageReceived(BMessage* message)
 {
 	switch (message->what) {
+		case kMsgMuteChanged:
+		{
+			bool muted = (fMuteCheckBox->Value() == B_CONTROL_ON);
+			SoundPlayer::Instance()->SetMuted(muted);
+			break;
+		}
+
+		case kMsgResetScores:
+		{
+			BAlert* alert = new BAlert("Confirm Reset",
+				"Are you sure you want to reset all high scores? This cannot be undone.",
+				"Cancel", "Reset", NULL,
+				B_WIDTH_AS_USUAL, B_WARNING_ALERT);
+			alert->SetShortcut(0, B_ESCAPE);
+
+			int32 result = alert->Go();
+			if (result == 1) {
+				HighScoreManager::Instance()->Reset();
+			}
+			break;
+		}
+
 		default:
 			BWindow::MessageReceived(message);
 			break;

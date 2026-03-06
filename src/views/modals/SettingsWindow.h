@@ -3,6 +3,9 @@
 
 #include <Window.h>
 
+class BButton;
+class BCheckBox;
+
 class SettingsWindow : public BWindow {
 public:
 						SettingsWindow(BWindow* parent);
@@ -12,6 +15,8 @@ public:
 
 private:
 	BWindow*			fParent;
+	BCheckBox*			fMuteCheckBox;
+	BButton*			fResetButton;
 };
 
 #endif // SETTINGS_WINDOW_H

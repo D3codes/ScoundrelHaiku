@@ -21,6 +21,7 @@ public:
 	HighScoreEntry*				GetScore(int index);
 	const char*					GetLastUsedName();
 	bool						IsHighScore(int score);
+	void						Reset();
 
 	void						Load();
 	void						Save();

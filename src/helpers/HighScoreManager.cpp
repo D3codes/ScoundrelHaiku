@@ -122,6 +122,24 @@ HighScoreManager::IsHighScore(int score)
 
 
 void
+HighScoreManager::Reset()
+{
+	fScores.MakeEmpty();
+	Save();
+
+	// Notify all windows that scores have been updated
+	if (be_app != NULL) {
+		int32 count = be_app->CountWindows();
+		for (int32 i = 0; i < count; i++) {
+			BWindow* window = be_app->WindowAt(i);
+			if (window != NULL)
+				window->PostMessage(kMsgHighScoresUpdated);
+		}
+	}
+}
+
+
+void
 HighScoreManager::Load()
 {
 	BPath path;

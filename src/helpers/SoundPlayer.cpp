@@ -1,6 +1,11 @@
 #include "SoundPlayer.h"
 #include "ResourceLoader.h"
 
+#include <Directory.h>
+#include <File.h>
+#include <FindDirectory.h>
+#include <Message.h>
+#include <Path.h>
 #include <SimpleGameSound.h>
 #include <stdlib.h>
 
@@ -32,6 +37,8 @@ SoundPlayer::SoundPlayer()
 	BPath dataPath = ResourceLoader::Instance()->GetDataPath();
 	fSoundPath = dataPath;
 	fSoundPath.Append("sounds/sfx");
+
+	LoadSettings();
 }
 
 
@@ -95,6 +102,56 @@ void
 SoundPlayer::SetMuted(bool muted)
 {
 	fMuted = muted;
+	SaveSettings();
+}
+
+
+void
+SoundPlayer::LoadSettings()
+{
+	BPath path;
+	if (find_directory(B_USER_SETTINGS_DIRECTORY, &path) != B_OK)
+		return;
+
+	path.Append("Scoundrel");
+	path.Append("settings");
+
+	BFile file(path.Path(), B_READ_ONLY);
+	if (file.InitCheck() != B_OK)
+		return;
+
+	BMessage archive;
+	if (archive.Unflatten(&file) != B_OK)
+		return;
+
+	bool muted;
+	if (archive.FindBool("muted", &muted) == B_OK)
+		fMuted = muted;
+}
+
+
+void
+SoundPlayer::SaveSettings()
+{
+	BPath path;
+	if (find_directory(B_USER_SETTINGS_DIRECTORY, &path) != B_OK)
+		return;
+
+	path.Append("Scoundrel");
+
+	// Create directory if it doesn't exist
+	BDirectory dir;
+	dir.CreateDirectory(path.Path(), NULL);
+
+	path.Append("settings");
+
+	BFile file(path.Path(), B_WRITE_ONLY | B_CREATE_FILE | B_ERASE_FILE);
+	if (file.InitCheck() != B_OK)
+		return;
+
+	BMessage archive;
+	archive.AddBool("muted", fMuted);
+	archive.Flatten(&file);
 }
 
 
