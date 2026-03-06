@@ -174,23 +174,23 @@ public:
 		// UI section
 		SetFont(&sectionFont);
 		DrawString("UI Elements", BPoint(leftMargin, y));
-		y += 25;
+		y += 30;
 
 		SetFont(&bodyFont);
 		DrawUIElement("||", "Pause the game", leftMargin, y);
-		y += 50;
+		y += 60;
 		DrawUIElementWithIcon("deck", "Cards remaining in the deck", leftMargin, y);
-		y += 50;
+		y += 60;
 		DrawUIElementWithIcon("dungeonGlyph", "Dungeons beaten", leftMargin, y);
-		y += 50;
+		y += 60;
 		DrawUIElement("Run", "Flee the current room", leftMargin, y);
-		y += 50;
+		y += 60;
 		DrawUIElementWithIcon("heart1", "Your life", leftMargin, y);
-		y += 50;
-		DrawUIElementWithIcon("shield1", "Shield strength (reduces monster damage)", leftMargin, y);
-		y += 50;
-		DrawUIElementWithIcon("sword1", "Weapon strength (max monster you can attack)", leftMargin, y);
-		y += 50;
+		y += 60;
+		DrawUIElementWithIcon("shield1", "Shield strength (reduces damage)", leftMargin, y);
+		y += 60;
+		DrawUIElementWithIcon("sword1", "Max monster you can attack with weapon", leftMargin, y);
+		y += 60;
 	}
 
 private:
@@ -249,49 +249,73 @@ private:
 	}
 
 	void DrawUIElement(const char* symbol, const char* description, float x, float y) {
-		BRect boxRect(x, y - 15, x + 40, y + 25);
-		SetHighColor(80, 80, 100);
-		FillRoundRect(boxRect, 5, 5);
-		SetHighColor(100, 100, 120);
-		StrokeRoundRect(boxRect, 5, 5);
+		float boxSize = 50;
+		float radius = 8;
+		BRect boxRect(x, y - 20, x + boxSize, y + boxSize - 20);
 
+		// Draw semi-transparent dark background
+		SetDrawingMode(B_OP_ALPHA);
+		SetHighColor(0, 0, 0, 160);
+		FillRoundRect(boxRect, radius, radius);
+
+		// Draw subtle border
+		SetHighColor(80, 80, 80, 200);
+		StrokeRoundRect(boxRect, radius, radius);
+		SetDrawingMode(B_OP_COPY);
+
+		// Draw symbol centered
 		BFont font;
-		font.SetSize(16);
+		font.SetSize(18);
 		font.SetFace(B_BOLD_FACE);
 		SetFont(&font);
 		SetHighColor(kTextColor);
 		float symbolWidth = StringWidth(symbol);
-		DrawString(symbol, BPoint(x + (40 - symbolWidth) / 2, y + 8));
+		float symbolX = boxRect.left + (boxSize - symbolWidth) / 2;
+		float symbolY = boxRect.top + boxSize / 2 + 6;
+		DrawString(symbol, BPoint(symbolX, symbolY));
 
+		// Draw description
 		font.SetSize(14);
 		font.SetFace(0);
 		SetFont(&font);
 		SetHighColor(kDarkTextColor);
-		DrawString(description, BPoint(x + 50, y + 8));
+		DrawString(description, BPoint(x + boxSize + 12, y + 8));
 	}
 
 	void DrawUIElementWithIcon(const char* iconName, const char* description, float x, float y) {
-		BRect boxRect(x, y - 15, x + 40, y + 25);
-		SetHighColor(200, 200, 220, 180);
-		FillRoundRect(boxRect, 5, 5);
-		SetHighColor(150, 150, 170);
-		StrokeRoundRect(boxRect, 5, 5);
+		float boxSize = 50;
+		float radius = 8;
+		float iconSize = 32;
+		BRect boxRect(x, y - 20, x + boxSize, y + boxSize - 20);
 
+		// Draw semi-transparent dark background
+		SetDrawingMode(B_OP_ALPHA);
+		SetHighColor(0, 0, 0, 160);
+		FillRoundRect(boxRect, radius, radius);
+
+		// Draw subtle border
+		SetHighColor(80, 80, 80, 200);
+		StrokeRoundRect(boxRect, radius, radius);
+		SetDrawingMode(B_OP_COPY);
+
+		// Draw icon centered
 		BBitmap* icon = ResourceLoader::Instance()->GetGlyph(iconName);
 		if (icon != NULL) {
 			BRect iconRect = icon->Bounds();
-			float iconSize = 25;
-			BRect destRect(x + 7, y - 10, x + 7 + iconSize, y - 10 + iconSize);
+			float iconX = boxRect.left + (boxSize - iconSize) / 2;
+			float iconY = boxRect.top + (boxSize - iconSize) / 2;
+			BRect destRect(iconX, iconY, iconX + iconSize, iconY + iconSize);
 			SetDrawingMode(B_OP_ALPHA);
 			DrawBitmap(icon, iconRect, destRect);
 			SetDrawingMode(B_OP_COPY);
 		}
 
+		// Draw description
 		BFont font;
 		font.SetSize(14);
 		SetFont(&font);
 		SetHighColor(kDarkTextColor);
-		DrawString(description, BPoint(x + 50, y + 8));
+		DrawString(description, BPoint(x + boxSize + 12, y + 8));
 	}
 };
 
@@ -312,7 +336,7 @@ HowToPlayWindow::HowToPlayWindow(BWindow* parent)
 	BRect bounds = Bounds();
 
 	float contentWidth = bounds.Width() - B_V_SCROLL_BAR_WIDTH - 1;
-	float contentHeight = 1550;
+	float contentHeight = 1620;
 	float scrollHeight = bounds.Height();
 
 	// Create content view
