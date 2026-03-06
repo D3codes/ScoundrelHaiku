@@ -10,6 +10,7 @@
 #include <Application.h>
 #include <Box.h>
 #include <Button.h>
+#include <Cursor.h>
 #include <File.h>
 #include <LayoutBuilder.h>
 #include <Roster.h>
