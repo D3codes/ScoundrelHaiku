@@ -49,3 +49,19 @@ LINKER_FLAGS =
 DEVEL_DIRECTORY := /boot/system/develop
 
 include $(DEVEL_DIRECTORY)/etc/makefile-engine
+
+.DEFAULT_GOAL := copy-to-base
+
+.PHONY: copy-to-base
+copy-to-base: default
+	@cp -f objects.*/$(NAME) ./$(NAME)
+	@xres -o ./$(NAME) objects.*/$(NAME) -a VICN:101:BEOS:ICON data/images/icon
+	@addattr -f data/images/icon -t icon BEOS:ICON ./$(NAME)
+	@mimeset ./$(NAME)
+	@echo "$(NAME) installed to base directory"
+
+clean: clean-base
+
+.PHONY: clean-base
+clean-base:
+	@rm -f ./$(NAME)
