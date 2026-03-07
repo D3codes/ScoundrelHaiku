@@ -98,7 +98,7 @@ static const uint32 kMsgResetScores = 'RSTS';
 
 SettingsWindow::SettingsWindow(BWindow* parent)
 	:
-	BWindow(BRect(0, 0, 350, 530), "Settings",
+	BWindow(BRect(0, 0, 400, 560), "Settings",
 		B_TITLED_WINDOW, B_NOT_RESIZABLE | B_NOT_ZOOMABLE | B_AUTO_UPDATE_SIZE_LIMITS),
 	fParent(parent)
 {
@@ -143,10 +143,6 @@ SettingsWindow::SettingsWindow(BWindow* parent)
 		.End();
 
 	// About section
-	BStringView* createdByLabel = new BStringView("createdBy", "Created by");
-	LinkView* authorLink = new LinkView("authorLink", "David Freeman",
-		"https://d3.codes/about");
-
 	// Get version from app resources
 	BString versionString = "v1.0.0";  // fallback
 	app_info appInfo;
@@ -167,23 +163,27 @@ SettingsWindow::SettingsWindow(BWindow* parent)
 	BStringView* versionLabel = new BStringView("version", versionString.String());
 	versionLabel->SetHighUIColor(B_PANEL_TEXT_COLOR);
 
+	BStringView* createdByLabel = new BStringView("createdBy", "Created by");
+	LinkView* authorLink = new LinkView("authorLink", "David Freeman",
+		"https://d3.codes/about");
+
 	BBox* aboutBox = new BBox("aboutBox");
 	aboutBox->SetLabel("About");
 	BLayoutBuilder::Group<>(aboutBox, B_VERTICAL, B_USE_SMALL_SPACING)
 		.SetInsets(B_USE_SMALL_INSETS)
 		.AddStrut(B_USE_SMALL_SPACING)
+		.Add(versionLabel)
 		.AddGroup(B_HORIZONTAL, B_USE_SMALL_SPACING)
 			.Add(createdByLabel)
 			.Add(authorLink)
 			.AddGlue()
 			.End()
-		.Add(versionLabel)
 		.AddGlue()
 		.End();
 
 	// Scoundrel for iOS section
-	BBitmap* qrBitmap = ResourceLoader::Instance()->GetAppDirImage("appStoreQR.png");
-	BitmapView* qrView = new BitmapView("qrCode", qrBitmap, 120);
+	BBitmap* qrBitmap = ResourceLoader::Instance()->LoadBitmap("images/appStoreQR.png");
+	BitmapView* qrView = new BitmapView("qrCode", qrBitmap, 150);
 
 	BBox* iosBox = new BBox("iosBox");
 	iosBox->SetLabel("Scoundrel for iOS");

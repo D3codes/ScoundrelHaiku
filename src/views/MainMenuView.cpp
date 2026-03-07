@@ -258,7 +258,7 @@ MainMenuView::DrawSavedGameStats()
 		} else if (label != NULL) {
 			// For "Score" which has no icon, draw text label
 			float labelWidth = StringWidth(label);
-			SetHighColor(180, 160, 130);
+			SetHighColor(kTextColor);
 			DrawString(label, BPoint(x + (boxSize - labelWidth) / 2, iconY + 16));
 		}
 

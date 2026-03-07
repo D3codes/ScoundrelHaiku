@@ -299,7 +299,7 @@ TopBarView::DrawScoreBox(BRect boxRect)
 	font.SetSize(12);
 	font.SetFace(B_BOLD_FACE);
 	SetFont(&font);
-	SetHighColor(180, 160, 130);
+	SetHighColor(kTextColor);
 
 	const char* label = "Score";
 	float labelWidth = StringWidth(label);
