@@ -163,9 +163,13 @@ SettingsWindow::SettingsWindow(BWindow* parent)
 	BStringView* versionLabel = new BStringView("version", versionString.String());
 	versionLabel->SetHighUIColor(B_PANEL_TEXT_COLOR);
 
-	BStringView* createdByLabel = new BStringView("createdBy", "Created by");
+	BStringView* iosLabel = new BStringView("iosLabel", "Original iOS app written by");
 	LinkView* authorLink = new LinkView("authorLink", "David Freeman",
 		"https://d3.codes/about");
+
+	BStringView* portedLabel = new BStringView("portedLabel", "Ported to Haiku with");
+	LinkView* claudeLink = new LinkView("claudeLink", "Claude Code",
+		"https://claude.ai/code");
 
 	BBox* aboutBox = new BBox("aboutBox");
 	aboutBox->SetLabel("About");
@@ -174,8 +178,13 @@ SettingsWindow::SettingsWindow(BWindow* parent)
 		.AddStrut(B_USE_SMALL_SPACING)
 		.Add(versionLabel)
 		.AddGroup(B_HORIZONTAL, B_USE_SMALL_SPACING)
-			.Add(createdByLabel)
+			.Add(iosLabel)
 			.Add(authorLink)
+			.AddGlue()
+			.End()
+		.AddGroup(B_HORIZONTAL, B_USE_SMALL_SPACING)
+			.Add(portedLabel)
+			.Add(claudeLink)
 			.AddGlue()
 			.End()
 		.AddGlue()
