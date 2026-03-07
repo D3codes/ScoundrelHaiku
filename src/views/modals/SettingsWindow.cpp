@@ -1,6 +1,7 @@
 #include "SettingsWindow.h"
 #include "helpers/HighScoreManager.h"
 #include "helpers/MusicPlayer.h"
+#include "helpers/ResourceLoader.h"
 #include "helpers/SoundPlayer.h"
 #include "utils/Constants.h"
 #include "utils/MessageCodes.h"
@@ -8,6 +9,7 @@
 #include <Alert.h>
 #include <AppFileInfo.h>
 #include <Application.h>
+#include <Bitmap.h>
 #include <Box.h>
 #include <Button.h>
 #include <Cursor.h>
@@ -20,6 +22,44 @@
 #include <String.h>
 #include <StringView.h>
 #include <View.h>
+
+
+// View to display a bitmap image
+class BitmapView : public BView {
+public:
+	BitmapView(const char* name, BBitmap* bitmap, float size)
+		: BView(name, B_WILL_DRAW),
+		  fBitmap(bitmap),
+		  fSize(size)
+	{
+		SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
+		SetExplicitSize(BSize(fSize, fSize));
+	}
+
+	virtual void Draw(BRect updateRect) {
+		if (fBitmap != NULL) {
+			BRect bounds = Bounds();
+			BRect destRect(0, 0, fSize - 1, fSize - 1);
+			// Center the image
+			destRect.OffsetBy((bounds.Width() - fSize) / 2,
+				(bounds.Height() - fSize) / 2);
+			SetDrawingMode(B_OP_ALPHA);
+			DrawBitmap(fBitmap, fBitmap->Bounds(), destRect);
+		}
+	}
+
+	virtual BSize MinSize() {
+		return BSize(fSize, fSize);
+	}
+
+	virtual BSize PreferredSize() {
+		return BSize(fSize, fSize);
+	}
+
+private:
+	BBitmap* fBitmap;
+	float fSize;
+};
 
 
 // Clickable link view
@@ -58,7 +98,7 @@ static const uint32 kMsgResetScores = 'RSTS';
 
 SettingsWindow::SettingsWindow(BWindow* parent)
 	:
-	BWindow(BRect(0, 0, 350, 380), "Settings",
+	BWindow(BRect(0, 0, 350, 530), "Settings",
 		B_TITLED_WINDOW, B_NOT_RESIZABLE | B_NOT_ZOOMABLE | B_AUTO_UPDATE_SIZE_LIMITS),
 	fParent(parent)
 {
@@ -141,12 +181,30 @@ SettingsWindow::SettingsWindow(BWindow* parent)
 		.AddGlue()
 		.End();
 
+	// Scoundrel for iOS section
+	BBitmap* qrBitmap = ResourceLoader::Instance()->GetAppDirImage("appStoreQR.png");
+	BitmapView* qrView = new BitmapView("qrCode", qrBitmap, 120);
+
+	BBox* iosBox = new BBox("iosBox");
+	iosBox->SetLabel("Scoundrel for iOS");
+	BLayoutBuilder::Group<>(iosBox, B_VERTICAL, B_USE_SMALL_SPACING)
+		.SetInsets(B_USE_SMALL_INSETS)
+		.AddStrut(B_USE_SMALL_SPACING)
+		.AddGroup(B_HORIZONTAL)
+			.AddGlue()
+			.Add(qrView)
+			.AddGlue()
+			.End()
+		.AddGlue()
+		.End();
+
 	// Main layout
 	BLayoutBuilder::Group<>(this, B_VERTICAL, B_USE_DEFAULT_SPACING)
 		.SetInsets(B_USE_WINDOW_INSETS)
 		.Add(audioBox)
 		.Add(scoresBox)
 		.Add(aboutBox)
+		.Add(iosBox)
 		.AddGlue()
 		.End();
 

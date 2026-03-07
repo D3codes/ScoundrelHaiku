@@ -41,7 +41,8 @@ ResourceLoader::ResourceLoader()
 
 	if (be_app != NULL && be_app->GetAppInfo(&info) == B_OK) {
 		BPath appPath(&info.ref);
-		appPath.GetParent(&fDataPath);
+		appPath.GetParent(&fAppPath);
+		fDataPath = fAppPath;
 		fDataPath.Append("data");
 
 		// Verify path exists
@@ -53,10 +54,12 @@ ResourceLoader::ResourceLoader()
 
 	if (!found) {
 		// Try current working directory
+		fAppPath.SetTo(".");
 		fDataPath.SetTo("./data");
 		BDirectory testDir(fDataPath.Path());
 		if (testDir.InitCheck() != B_OK) {
 			// Last resort - absolute path for development
+			fAppPath.SetTo("/boot/home/Developer/ScoundrelHaiku");
 			fDataPath.SetTo("/boot/home/Developer/ScoundrelHaiku/data");
 		}
 	}
@@ -79,6 +82,35 @@ BPath
 ResourceLoader::GetDataPath() const
 {
 	return fDataPath;
+}
+
+
+BPath
+ResourceLoader::GetAppPath() const
+{
+	return fAppPath;
+}
+
+
+BBitmap*
+ResourceLoader::GetAppDirImage(const char* imageName)
+{
+	BString cacheKey;
+	cacheKey.SetToFormat("appdir/%s", imageName);
+
+	// Check cache first
+	BBitmap* cached = FindCached(cacheKey.String());
+	if (cached != NULL)
+		return cached;
+
+	BPath path(fAppPath);
+	path.Append(imageName);
+
+	BBitmap* bitmap = LoadFromPath(path);
+	if (bitmap != NULL)
+		AddToCache(cacheKey.String(), bitmap);
+
+	return bitmap;
 }
 
 

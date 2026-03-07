@@ -23,8 +23,10 @@ public:
 	BBitmap*			GetGlyph(const char* glyphName);
 	BBitmap*			GetUIImage(const char* uiImageName);
 	BBitmap*			GetBackground(const char* backgroundName);
+	BBitmap*			GetAppDirImage(const char* imageName);
 
 	BPath				GetDataPath() const;
+	BPath				GetAppPath() const;
 
 private:
 						ResourceLoader();
@@ -36,6 +38,7 @@ private:
 	static ResourceLoader*		sInstance;
 	BObjectList<BitmapCacheEntry>	fCache;
 	BPath				fDataPath;
+	BPath				fAppPath;
 };
 
 #endif // RESOURCE_LOADER_H
