@@ -296,7 +296,7 @@ TopBarView::DrawScoreBox(BRect boxRect)
 
 	// Draw "Score" label
 	BFont font;
-	font.SetSize(12);
+	font.SetSize(14);
 	font.SetFace(B_BOLD_FACE);
 	SetFont(&font);
 	SetHighColor(kTextColor);
@@ -304,7 +304,7 @@ TopBarView::DrawScoreBox(BRect boxRect)
 	const char* label = "Score";
 	float labelWidth = StringWidth(label);
 	float labelX = boxRect.left + (boxRect.Width() - labelWidth) / 2;
-	DrawString(label, BPoint(labelX, boxRect.top + 18));
+	DrawString(label, BPoint(labelX, boxRect.top + 20));
 
 	// Draw score value
 	font.SetSize(14);
